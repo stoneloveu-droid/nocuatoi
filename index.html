@@ -5,244 +5,610 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Nợ Tracker">
-<meta name="theme-color" content="#0f0f1a">
-<title>Nợ Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-title" content="Ví Nợ">
+<meta name="theme-color" content="#0A0A0F">
+<title>Ví Nợ</title>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#0f0f1a; --surface:#181825; --surface2:#1e1e2e; --border:#2a2a40;
-  --red:#ff4d6d; --orange:#ff9f1c; --green:#06d6a0; --blue:#4cc9f0; --purple:#b388ff;
-  --text:#e2e2f0; --muted:#6e6e8a;
-  --safe:env(safe-area-inset-top,0px); --safeb:env(safe-area-inset-bottom,0px);
+  --bg: #0A0A0F;
+  --card: #13131A;
+  --card2: #1A1A24;
+  --border: rgba(255,255,255,0.07);
+  --accent: #C8FF57;
+  --accent2: #57C8FF;
+  --red: #FF5757;
+  --orange: #FFB347;
+  --text: #F0F0F8;
+  --sub: rgba(240,240,248,0.45);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);
-  min-height:100dvh;padding-top:calc(var(--safe)+12px);padding-bottom:calc(var(--safeb)+70px);overflow-x:hidden}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-/* HEADER */
-.header{padding:8px 20px 14px;display:flex;justify-content:space-between;align-items:flex-start}
-.header h1{font-family:'Space Mono',monospace;font-size:22px;font-weight:700}
-.header p{font-size:11px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace}
-.month-badge{background:var(--surface2);border:1px solid var(--border);border-radius:20px;
-  padding:6px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--blue);
-  cursor:pointer;display:flex;align-items:center;gap:6px}
-.month-badge:active{transform:scale(0.96)}
+body {
+  font-family: 'Mulish', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-/* KPI */
-.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 14px}
-.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px;position:relative;overflow:hidden}
-.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-.kpi-card.red::before{background:var(--red)}.kpi-card.orange::before{background:var(--orange)}
-.kpi-card.green::before{background:var(--green)}.kpi-card.blue::before{background:var(--blue)}
-.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;font-family:'Space Mono',monospace}
-.kpi-value{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;line-height:1}
-.kpi-card.red .kpi-value{color:var(--red)}.kpi-card.orange .kpi-value{color:var(--orange)}
-.kpi-card.green .kpi-value{color:var(--green)}.kpi-card.blue .kpi-value{color:var(--blue)}
-.kpi-sub{font-size:10px;color:var(--muted);margin-top:3px}
+/* ── PAGES ── */
+.page { display:none; flex-direction:column; min-height:100dvh; }
+.page.active { display:flex; }
 
-/* PROGRESS */
-.progress-section{padding:0 16px 14px}
-.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:7px;font-family:'Space Mono',monospace}
-.progress-bar{background:var(--surface2);border-radius:6px;height:8px;overflow:hidden}
-.progress-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--green),#00f5a0);transition:width .5s cubic-bezier(.4,0,.2,1)}
+/* ── SCROLLABLE CONTENT AREA ── */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: calc(var(--safe-t) + 16px);
+  padding-bottom: calc(var(--safe-b) + 76px);
+}
 
-/* TABS */
-.tabs{display:flex;gap:6px;padding:0 16px 12px;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tab{padding:7px 15px;border-radius:20px;font-size:12px;font-family:'Space Mono',monospace;cursor:pointer;
-  white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .2s;flex-shrink:0}
-.tab.active{background:var(--blue);border-color:var(--blue);color:#000;font-weight:700}
-.tab:active{transform:scale(0.95)}
+/* ── HEADER ── */
+.top-bar {
+  padding: 0 20px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.top-bar-left { display:flex; flex-direction:column; gap:2px; }
+.greeting { font-size: 12px; font-weight: 600; color: var(--sub); letter-spacing:.5px; text-transform:uppercase; }
+.app-title { font-size: 22px; font-weight: 900; color: var(--text); letter-spacing:-0.5px; }
 
-/* SECTION HEADER */
-.section-header{padding:4px 16px 8px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:'Space Mono',monospace}
+.month-pill {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: background .2s;
+}
+.month-pill:active { background: var(--card); transform: scale(.96); }
 
-/* CARDS */
-.card-list{padding:0 16px;display:flex;flex-direction:column;gap:10px}
-.debt-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color .3s}
-.debt-card.paid{border-color:var(--green)}
-.debt-card.paid .card-top{opacity:.55}
-.card-top{display:flex;align-items:center;padding:13px 13px 13px 15px;gap:11px;cursor:pointer;user-select:none}
-.card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.card-info{flex:1;min-width:0}
-.card-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-type{font-size:11px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace}
-.card-amount{text-align:right;flex-shrink:0}
-.card-monthly{font-family:'Space Mono',monospace;font-size:14px;font-weight:700}
-.card-monthly.type-td{color:var(--orange)}.card-monthly.type-tc{color:var(--blue)}
-.card-due{font-size:10px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace}
-.check-btn{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:transparent;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);
-  flex-shrink:0;color:var(--muted);font-size:16px}
-.check-btn.checked{background:var(--green);border-color:var(--green);color:#000;transform:scale(1.05)}
-.check-btn:active{transform:scale(.92)}
+/* ── HERO CARD ── */
+.hero-card {
+  margin: 0 16px 16px;
+  background: linear-gradient(135deg, #1C2A10 0%, #0F1A1F 50%, #1A1224 100%);
+  border: 1px solid rgba(200,255,87,0.15);
+  border-radius: 24px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-card::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(200,255,87,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-label { font-size: 11px; font-weight: 700; color: var(--sub); text-transform:uppercase; letter-spacing:.8px; margin-bottom:6px; }
+.hero-amount {
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.hero-amount span { font-size: 18px; font-weight: 600; color: var(--sub); margin-left: 4px; }
+.hero-sub { font-size: 12px; font-weight: 600; color: var(--sub); margin-bottom: 20px; }
 
-/* DETAIL */
-.card-detail{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1);border-top:0px solid var(--border)}
-.card-detail.open{max-height:180px;border-top-width:1px}
-.card-detail-inner{padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.detail-item label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-family:'Space Mono',monospace}
-.detail-item p{font-size:13px;font-weight:700;color:var(--text);margin-top:3px;font-family:'Space Mono',monospace}
+.hero-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.hero-stat {
+  background: rgba(255,255,255,0.04);
+  padding: 12px 10px;
+  text-align: center;
+}
+.hero-stat-val { font-size: 14px; font-weight: 800; color: var(--text); }
+.hero-stat-val.green { color: var(--accent); }
+.hero-stat-val.red { color: var(--red); }
+.hero-stat-val.blue { color: var(--accent2); }
+.hero-stat-label { font-size: 10px; font-weight: 600; color: var(--sub); margin-top: 2px; }
 
-/* BOTTOM NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface2);border-top:1px solid var(--border);
-  display:flex;padding-bottom:var(--safeb);z-index:50}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;
-  cursor:pointer;color:var(--muted);font-size:10px;font-family:'Space Mono',monospace;gap:4px;transition:color .2s}
-.nav-btn span:first-child{font-size:22px}
-.nav-btn.active{color:var(--blue)}
-.nav-btn:active{opacity:.7}
+/* ── PROGRESS ── */
+.progress-wrap { padding: 0 16px 16px; }
+.progress-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.progress-title { font-size: 12px; font-weight: 700; color: var(--sub); text-transform:uppercase; letter-spacing:.5px; }
+.progress-pct { font-size: 13px; font-weight: 800; color: var(--accent); }
+.progress-track {
+  background: var(--card2);
+  border-radius: 100px;
+  height: 6px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--accent), #8fff00);
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
 
-/* PAGES */
-.page{display:none}.page.active{display:block}
+/* ── SEGMENT TABS ── */
+.seg-wrap { padding: 0 16px 14px; }
+.seg {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 4px;
+  gap: 4px;
+}
+.seg-btn {
+  padding: 8px 4px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.seg-btn.active {
+  background: var(--accent);
+  color: #0A0A0F;
+}
+.seg-btn:active { transform: scale(.95); }
 
-/* SETTINGS PAGE */
-.settings-header{padding:8px 20px 16px}
-.settings-header h2{font-family:'Space Mono',monospace;font-size:20px;font-weight:700}
-.settings-header p{font-size:11px;color:var(--muted);margin-top:3px}
-.settings-section{padding:0 16px 16px}
-.settings-section h3{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);
-  font-family:'Space Mono',monospace;margin-bottom:10px}
-.setting-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;
-  margin-bottom:8px;overflow:hidden}
-.setting-row{display:flex;align-items:center;padding:12px 14px;gap:10px;cursor:pointer}
-.setting-row:not(:last-child){border-bottom:1px solid var(--border)}
-.setting-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.setting-info{flex:1;min-width:0}
-.setting-name{font-size:13px;font-weight:700}
-.setting-val{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:2px}
-.setting-arrow{color:var(--muted);font-size:16px}
-.add-btn{width:100%;padding:13px;background:var(--surface2);border:1px dashed var(--border);
-  border-radius:14px;color:var(--blue);font-family:'Space Mono',monospace;font-size:13px;
-  cursor:pointer;text-align:center;margin-top:4px}
-.add-btn:active{opacity:.7}
-.del-btn{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:4px 8px}
+/* ── SECTION LABEL ── */
+.sec-label {
+  padding: 0 16px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
 
-/* MODAL */
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);
-  backdrop-filter:blur(8px);z-index:200;align-items:flex-end;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal-sheet{background:var(--surface2);border:1px solid var(--border);border-radius:24px 24px 0 0;
-  padding:24px 20px calc(var(--safeb)+24px);width:100%;max-width:480px}
-.modal-sheet h3{font-family:'Space Mono',monospace;font-size:16px;text-align:center;margin-bottom:20px;color:var(--text)}
-.form-group{margin-bottom:14px}
-.form-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;
-  font-family:'Space Mono',monospace;display:block;margin-bottom:6px}
-.form-group input, .form-group select{width:100%;background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:'Space Mono',monospace;outline:none}
-.form-group input:focus,.form-group select:focus{border-color:var(--blue)}
-.form-group select option{background:var(--surface2)}
-.modal-actions{display:flex;gap:10px;margin-top:18px}
-.btn-cancel{flex:1;padding:13px;background:var(--surface);border:1px solid var(--border);border-radius:12px;
-  color:var(--muted);font-family:'Space Mono',monospace;font-size:13px;cursor:pointer}
-.btn-save{flex:2;padding:13px;background:var(--blue);border:none;border-radius:12px;
-  color:#000;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;cursor:pointer}
-.btn-save:active,.btn-cancel:active{opacity:.8}
-.btn-danger{flex:1;padding:13px;background:var(--red);border:none;border-radius:12px;
-  color:#fff;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer}
+/* ── DEBT CARDS ── */
+.cards { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
 
-/* MONTH PICKER */
-.month-sheet{background:var(--surface2);border:1px solid var(--border);border-radius:24px 24px 0 0;
-  padding:24px 20px calc(var(--safeb)+24px);width:100%;max-width:480px}
-.month-sheet h3{font-family:'Space Mono',monospace;font-size:16px;text-align:center;margin-bottom:18px}
-.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.month-btn{padding:12px 4px;border-radius:12px;border:1px solid var(--border);background:var(--surface);
-  color:var(--muted);font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;text-align:center;transition:all .2s}
-.month-btn.active{background:var(--blue);border-color:var(--blue);color:#000;font-weight:700}
-.month-btn:active{transform:scale(.94)}
+.debt-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: border-color .25s;
+}
+.debt-card.paid { border-color: rgba(200,255,87,0.35); }
 
-/* TOAST */
-.toast{position:fixed;bottom:calc(var(--safeb)+80px);left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--green);color:#000;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
-  padding:10px 20px;border-radius:30px;opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);
-  pointer-events:none;z-index:999;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.dc-main {
+  display: flex;
+  align-items: center;
+  padding: 14px 14px 14px 16px;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.dc-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background .3s;
+}
+.dc-dot.td { background: var(--orange); }
+.dc-dot.tc { background: var(--accent2); }
+.dc-dot.paid-dot { background: var(--accent); }
 
-@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1.05)}}
-.check-btn.pop{animation:pop .25s ease forwards}
+.dc-info { flex: 1; min-width: 0; }
+.dc-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dc-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sub);
+  margin-top: 2px;
+}
+
+.dc-right { text-align: right; flex-shrink: 0; }
+.dc-amount { font-size: 15px; font-weight: 800; }
+.dc-amount.td { color: var(--orange); }
+.dc-amount.tc { color: var(--accent2); }
+.dc-unit { font-size: 10px; font-weight: 600; color: var(--sub); margin-top: 2px; }
+
+.check-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.12);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+  flex-shrink: 0;
+  font-size: 14px;
+  color: transparent;
+}
+.check-btn.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0A0A0F;
+  font-weight: 900;
+}
+.check-btn:active { transform: scale(.88); }
+
+/* detail expand */
+.dc-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .3s cubic-bezier(.4,0,.2,1);
+  border-top: 0px solid var(--border);
+}
+.dc-detail.open { max-height: 100px; border-top-width: 1px; }
+.dc-detail-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 12px 16px;
+  gap: 8px;
+}
+.dc-di label { font-size: 10px; font-weight: 700; color: var(--sub); text-transform:uppercase; letter-spacing:.4px; }
+.dc-di p { font-size: 13px; font-weight: 800; color: var(--text); margin-top: 3px; }
+
+/* empty state */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--sub);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(13,13,20,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 10px 0 calc(var(--safe-b) + 6px);
+  display: flex;
+  z-index: 100;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 2px 0;
+  transition: opacity .2s;
+}
+.nav-item:active { opacity: .6; }
+.nav-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+}
+.nav-item.active .nav-icon {
+  background: var(--accent);
+  transform: scale(1.05);
+}
+.nav-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sub);
+  letter-spacing: .3px;
+}
+.nav-item.active .nav-label { color: var(--accent); }
+
+/* ── SETTINGS PAGE ── */
+.page-header {
+  padding: calc(var(--safe-t) + 16px) 20px 20px;
+  display: flex; align-items: center; gap: 12px;
+}
+.page-header h2 { font-size: 20px; font-weight: 900; }
+.page-header p { font-size: 12px; font-weight: 600; color: var(--sub); margin-top: 2px; }
+
+.settings-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--safe-b) + 76px);
+  padding: 0 16px calc(var(--safe-b) + 76px);
+}
+
+.settings-group { margin-bottom: 20px; }
+.settings-group-label {
+  font-size: 11px; font-weight: 800; color: var(--sub);
+  text-transform: uppercase; letter-spacing: .8px;
+  margin-bottom: 8px; padding-left: 4px;
+}
+.settings-list {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.settings-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.settings-row:not(:last-child) { border-bottom: 1px solid var(--border); }
+.settings-row:active { background: var(--card2); }
+.s-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.s-info { flex: 1; min-width: 0; }
+.s-name { font-size: 14px; font-weight: 700; }
+.s-val { font-size: 11px; font-weight: 600; color: var(--sub); margin-top: 2px; }
+.s-arrow { color: var(--sub); font-size: 14px; }
+.s-del { background:none; border:none; color:var(--red); font-size:18px; cursor:pointer; padding:4px 8px; font-weight:700; }
+.s-del:active { opacity:.6; }
+
+.add-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 14px;
+  color: var(--accent2);
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; background: var(--card);
+  border: 1px dashed rgba(87,200,255,0.3);
+  border-radius: 18px;
+  margin-top: 8px;
+}
+.add-row:active { opacity: .7; }
+
+.danger-row .s-name { color: var(--red); }
+
+/* ── MODAL ── */
+.modal-bg {
+  display: none; position: fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 300;
+  align-items: flex-end; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+
+.modal-sheet {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 28px 28px 0 0;
+  padding: 8px 20px calc(var(--safe-b) + 24px);
+  width: 100%; max-width: 430px;
+}
+.modal-handle {
+  width: 36px; height: 4px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.modal-title { font-size: 18px; font-weight: 900; text-align:center; margin-bottom: 20px; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  font-size: 11px; font-weight: 800; color: var(--sub);
+  text-transform:uppercase; letter-spacing:.6px;
+  display:block; margin-bottom: 7px;
+}
+.form-group input, .form-group select {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 16px;
+  color: var(--text);
+  font-family: 'Mulish', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color .2s;
+  -webkit-appearance: none;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--accent2); }
+.form-group select option { background: #1A1A24; }
+
+.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+.btn { flex:1; padding: 15px; border:none; border-radius: 14px; font-family:'Mulish',sans-serif; font-size: 14px; font-weight: 800; cursor:pointer; transition: opacity .2s; }
+.btn:active { opacity: .8; }
+.btn-cancel { background: var(--card); color: var(--sub); border: 1px solid var(--border); }
+.btn-save   { background: var(--accent); color: #0A0A0F; flex: 2; }
+.btn-del    { background: var(--red); color: #fff; display:none; }
+
+/* ── MONTH SHEET ── */
+.month-sheet {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 28px 28px 0 0;
+  padding: 8px 20px calc(var(--safe-b) + 28px);
+  width: 100%; max-width: 430px;
+}
+.month-sheet-title { font-size: 16px; font-weight: 900; text-align:center; margin: 12px 0 18px; }
+.month-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+.m-btn {
+  padding: 13px 0; border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--sub);
+  font-family: 'Mulish', sans-serif;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; text-align: center;
+  transition: all .2s;
+}
+.m-btn.active { background: var(--accent); border-color: var(--accent); color: #0A0A0F; font-weight: 900; }
+.m-btn:active { transform: scale(.94); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: calc(var(--safe-b) + 88px);
+  left: 50%; transform: translateX(-50%) translateY(12px);
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Mulish', sans-serif;
+  font-size: 13px; font-weight: 700;
+  padding: 11px 20px;
+  border-radius: 100px;
+  opacity: 0;
+  transition: all .28s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+  z-index: 999;
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+
+@keyframes pop {
+  0%{transform:scale(1)} 35%{transform:scale(1.22)} 100%{transform:scale(1.05)}
+}
+.check-btn.pop { animation: pop .22s ease forwards; }
 </style>
 </head>
 <body>
 
-<!-- PAGE: HOME -->
+<!-- ══ PAGE: HOME ══ -->
 <div class="page active" id="page-home">
-  <div class="header">
-    <div>
-      <h1>💳 Nợ Tracker</h1>
-      <p id="sub-date"></p>
-    </div>
-    <div class="month-badge" onclick="openMonthPicker()">
-      <span id="month-label">T6/2026</span><span>▾</span>
-    </div>
-  </div>
+  <div class="scroll-area">
 
-  <div class="kpi-row">
-    <div class="kpi-card red"><div class="kpi-label">Tổng dư nợ</div><div class="kpi-value" id="kpi-debt">—</div><div class="kpi-sub">tất cả khoản</div></div>
-    <div class="kpi-card orange"><div class="kpi-label">Phải trả/tháng</div><div class="kpi-value" id="kpi-monthly">—</div><div class="kpi-sub">lãi + gốc</div></div>
-    <div class="kpi-card green"><div class="kpi-label">Đã thanh toán</div><div class="kpi-value" id="kpi-paid">0/0</div><div class="kpi-sub">khoản tháng này</div></div>
-    <div class="kpi-card blue"><div class="kpi-label">Còn thiếu</div><div class="kpi-value" id="kpi-left">—</div><div class="kpi-sub">chưa tick</div></div>
-  </div>
-
-  <div class="progress-section">
-    <div class="progress-label"><span>Tiến độ tháng</span><span id="progress-pct">0%</span></div>
-    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-  </div>
-
-  <div class="tabs">
-    <div class="tab active" onclick="filterTab('all',this)">Tất cả</div>
-    <div class="tab" onclick="filterTab('td',this)">Thẻ TDụng</div>
-    <div class="tab" onclick="filterTab('tc',this)">Vay TC</div>
-    <div class="tab" onclick="filterTab('unpaid',this)">Chưa TT</div>
-  </div>
-
-  <div id="card-list" class="card-list"></div>
-</div>
-
-<!-- PAGE: SETTINGS -->
-<div class="page" id="page-settings">
-  <div class="settings-header">
-    <h2>⚙️ Cài Đặt</h2>
-    <p>Chỉnh sửa danh sách khoản nợ</p>
-  </div>
-
-  <div class="settings-section">
-    <h3>💳 Thẻ Tín Dụng</h3>
-    <div class="setting-card" id="list-td"></div>
-    <button class="add-btn" onclick="openAddModal('td')">+ Thêm thẻ tín dụng</button>
-  </div>
-
-  <div class="settings-section">
-    <h3>💰 Vay Tín Chấp</h3>
-    <div class="setting-card" id="list-tc"></div>
-    <button class="add-btn" onclick="openAddModal('tc')">+ Thêm khoản vay</button>
-  </div>
-
-  <div class="settings-section">
-    <h3>⚠️ Nguy hiểm</h3>
-    <div class="setting-card">
-      <div class="setting-row" onclick="resetAllData()" style="color:var(--red)">
-        <div class="setting-icon" style="background:#2a1010">🗑️</div>
-        <div class="setting-info"><div class="setting-name" style="color:var(--red)">Xoá toàn bộ dữ liệu</div><div class="setting-val">Reset về mặc định</div></div>
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <div class="greeting">Xin chào, Phúc 👋</div>
+        <div class="app-title">Ví Nợ</div>
+      </div>
+      <div class="month-pill" onclick="openMonthPicker()">
+        <span id="month-label">T6/2026</span>
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
     </div>
+
+    <!-- Hero -->
+    <div class="hero-card">
+      <div class="hero-label">Tổng dư nợ</div>
+      <div class="hero-amount" id="h-debt">—<span>đ</span></div>
+      <div class="hero-sub" id="h-sub">— khoản đang theo dõi</div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-val orange" id="h-monthly">—</div>
+          <div class="hero-stat-label">Trả/tháng</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val green" id="h-paid">0/0</div>
+          <div class="hero-stat-label">Đã thanh toán</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val red" id="h-left">—</div>
+          <div class="hero-stat-label">Còn thiếu</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <div class="progress-title">Tiến độ tháng</div>
+        <div class="progress-pct" id="progress-pct">0%</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="seg-wrap">
+      <div class="seg">
+        <div class="seg-btn active" onclick="filterTab('all',this)">Tất cả</div>
+        <div class="seg-btn" onclick="filterTab('td',this)">TDụng</div>
+        <div class="seg-btn" onclick="filterTab('tc',this)">Vay TC</div>
+        <div class="seg-btn" onclick="filterTab('unpaid',this)">Chưa TT</div>
+      </div>
+    </div>
+
+    <div id="card-list"></div>
+
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- ══ PAGE: SETTINGS ══ -->
+<div class="page" id="page-settings">
+  <div class="page-header">
+    <div>
+      <h2>Cài đặt</h2>
+      <p>Quản lý danh sách khoản nợ</p>
+    </div>
+  </div>
+  <div class="settings-scroll">
+
+    <div class="settings-group">
+      <div class="settings-group-label">💳 Thẻ Tín Dụng</div>
+      <div class="settings-list" id="list-td"></div>
+      <div class="add-row" onclick="openAddModal('td')">＋ Thêm thẻ tín dụng</div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-label">💰 Vay Tín Chấp</div>
+      <div class="settings-list" id="list-tc"></div>
+      <div class="add-row" onclick="openAddModal('tc')">＋ Thêm khoản vay</div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-label">Nguy hiểm</div>
+      <div class="settings-list">
+        <div class="settings-row danger-row" onclick="resetAllData()">
+          <div class="s-icon" style="background:rgba(255,87,87,0.12)">🗑️</div>
+          <div class="s-info">
+            <div class="s-name">Xoá toàn bộ & reset</div>
+            <div class="s-val">Khôi phục dữ liệu mặc định</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ BOTTOM NAV ══ -->
 <div class="bottom-nav">
-  <div class="nav-btn active" id="nav-home" onclick="switchPage('home')">
-    <span>🏠</span><span>Trang chủ</span>
+  <div class="nav-item active" id="nav-home" onclick="switchPage('home')">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Tổng Quan</div>
   </div>
-  <div class="nav-btn" id="nav-settings" onclick="switchPage('settings')">
-    <span>⚙️</span><span>Cài đặt</span>
+  <div class="nav-item" id="nav-settings" onclick="switchPage('settings')">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">Cài Đặt</div>
   </div>
 </div>
 
-<!-- MODAL: ADD / EDIT -->
-<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+<!-- ══ MODAL: EDIT / ADD ══ -->
+<div class="modal-bg" id="modal" onclick="closeModalBg(event)">
   <div class="modal-sheet">
-    <h3 id="modal-title">Thêm khoản nợ</h3>
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">Thêm khoản nợ</div>
     <div class="form-group">
       <label>Tên ngân hàng</label>
       <input id="f-name" type="text" placeholder="VD: TP Bank">
@@ -256,28 +622,29 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="form-group">
       <label>Dư nợ hiện tại (đ)</label>
-      <input id="f-debt" type="number" placeholder="VD: 12000000">
+      <input id="f-debt" type="number" inputmode="numeric" placeholder="VD: 12000000">
     </div>
     <div class="form-group">
-      <label>Số tiền trả mỗi tháng (đ)</label>
-      <input id="f-monthly" type="number" placeholder="VD: 216000">
+      <label>Trả mỗi tháng (đ)</label>
+      <input id="f-monthly" type="number" inputmode="numeric" placeholder="VD: 216000">
     </div>
     <div class="form-group">
-      <label>Lãi suất / ghi chú</label>
+      <label>Ghi chú</label>
       <input id="f-note" type="text" placeholder="VD: 1.80%/th · Kỳ 13/35">
     </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Huỷ</button>
-      <button class="btn-danger" id="btn-delete" onclick="deleteDebt()" style="display:none">Xoá</button>
-      <button class="btn-save" onclick="saveDebt()">Lưu</button>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeModal()">Huỷ</button>
+      <button class="btn btn-del" id="btn-del" onclick="deleteDebt()">Xoá</button>
+      <button class="btn btn-save" onclick="saveDebt()">Lưu</button>
     </div>
   </div>
 </div>
 
-<!-- MONTH PICKER -->
-<div class="modal-overlay" id="month-picker" onclick="closeMonthPicker(event)">
+<!-- ══ MONTH PICKER ══ -->
+<div class="modal-bg" id="month-picker" onclick="closeMonthBg(event)">
   <div class="month-sheet">
-    <h3>Chọn tháng — 2026</h3>
+    <div class="modal-handle"></div>
+    <div class="month-sheet-title" id="month-sheet-title">Chọn tháng</div>
     <div class="month-grid" id="month-grid"></div>
   </div>
 </div>
@@ -288,85 +655,63 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <script>
 // ── DEFAULT DATA ──────────────────────────────────────────────────────────────
 const DEFAULT_DEBTS = [
-  {id:'tp',      name:'TP Bank',      type:'td', debt:12000000,  monthly:216000,   note:'1.80%/th'},
-  {id:'ocb',     name:'OCB Bank',     type:'td', debt:36300000,  monthly:834900,   note:'2.30%/th'},
-  {id:'vp-td',   name:'VP Bank TD',   type:'td', debt:40500000,  monthly:202500,   note:'0.50%/th'},
-  {id:'shin-td', name:'Shinhan TD',   type:'td', debt:24500000,  monthly:318500,   note:'1.30%/th'},
-  {id:'vp-tc',   name:'VP Bank TC',   type:'tc', debt:17227509,  monthly:1113000,  note:'Kỳ 13/35'},
-  {id:'shin-tc', name:'Shinhan TC',   type:'tc', debt:29776139,  monthly:2312000,  note:'Kỳ 46/60'},
-  {id:'hsbc',    name:'HSBC Bank',    type:'tc', debt:31962457,  monthly:2991000,  note:'Kỳ 49/60'},
-  {id:'vib1',    name:'VIB Bank 1',   type:'tc', debt:34200505,  monthly:2616000,  note:'Kỳ 46/60'},
-  {id:'vib2',    name:'VIB Bank 2',   type:'tc', debt:28926071,  monthly:1417000,  note:'Kỳ 11/36'},
+  {id:'tp',      name:'TP Bank',     type:'td', debt:12000000,  monthly:216000,  note:'1.80%/th'},
+  {id:'ocb',     name:'OCB Bank',    type:'td', debt:36300000,  monthly:834900,  note:'2.30%/th'},
+  {id:'vp-td',   name:'VP Bank TD',  type:'td', debt:40500000,  monthly:202500,  note:'0.50%/th'},
+  {id:'shin-td', name:'Shinhan TD',  type:'td', debt:24500000,  monthly:318500,  note:'1.30%/th'},
+  {id:'vp-tc',   name:'VP Bank TC',  type:'tc', debt:17227509,  monthly:1113000, note:'Kỳ 13/35'},
+  {id:'shin-tc', name:'Shinhan TC',  type:'tc', debt:29776139,  monthly:2312000, note:'Kỳ 46/60'},
+  {id:'hsbc',    name:'HSBC Bank',   type:'tc', debt:31962457,  monthly:2991000, note:'Kỳ 49/60'},
+  {id:'vib1',    name:'VIB Bank 1',  type:'tc', debt:34200505,  monthly:2616000, note:'Kỳ 46/60'},
+  {id:'vib2',    name:'VIB Bank 2',  type:'tc', debt:28926071,  monthly:1417000, note:'Kỳ 11/36'},
 ];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let debts = [];
-let ticks = {};       // { "2026-06": { id: true } }
-let currentMonth = '';
-let currentFilter = 'all';
-let editingId = null;
-let addingType = 'td';
-let openDetail = null;
+let debts = [], ticks = {}, currentMonth = '', currentFilter = 'all', editingId = null, openDetail = null;
 
-function loadAll() {
-  try {
-    const d = localStorage.getItem('nt_debts');
-    debts = d ? JSON.parse(d) : JSON.parse(JSON.stringify(DEFAULT_DEBTS));
-  } catch { debts = JSON.parse(JSON.stringify(DEFAULT_DEBTS)); }
-  try {
-    const t = localStorage.getItem('nt_ticks');
-    ticks = t ? JSON.parse(t) : {};
-  } catch { ticks = {}; }
+function load() {
+  try { const d = localStorage.getItem('vn_debts'); debts = d ? JSON.parse(d) : JSON.parse(JSON.stringify(DEFAULT_DEBTS)); } catch { debts = JSON.parse(JSON.stringify(DEFAULT_DEBTS)); }
+  try { const t = localStorage.getItem('vn_ticks'); ticks = t ? JSON.parse(t) : {}; } catch { ticks = {}; }
 }
-function saveDebts() { localStorage.setItem('nt_debts', JSON.stringify(debts)); }
-function saveTicks() { localStorage.setItem('nt_ticks', JSON.stringify(ticks)); }
-
-function getMS() {
-  if (!ticks[currentMonth]) ticks[currentMonth] = {};
-  return ticks[currentMonth];
-}
-function isPaid(id) { return !!getMS()[id]; }
-function toggleTick(id) { const m=getMS(); m[id]=!m[id]; saveTicks(); }
-
-function initMonth() {
-  const n = new Date();
-  currentMonth = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
-}
+function saveDebts() { localStorage.setItem('vn_debts', JSON.stringify(debts)); }
+function saveTicks() { localStorage.setItem('vn_ticks', JSON.stringify(ticks)); }
+function ms() { if (!ticks[currentMonth]) ticks[currentMonth]={}; return ticks[currentMonth]; }
+function isPaid(id) { return !!ms()[id]; }
+function toggleTick(id) { const m=ms(); m[id]=!m[id]; saveTicks(); }
+function initMonth() { const n=new Date(); currentMonth=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`; }
 
 // ── FORMAT ────────────────────────────────────────────────────────────────────
 function fmt(n) {
-  n = Number(n)||0;
+  n=Number(n)||0;
   if(n>=1e9) return (n/1e9).toFixed(1)+'B';
   if(n>=1e6) return (n/1e6).toFixed(1)+'M';
   if(n>=1e3) return (n/1e3).toFixed(0)+'K';
   return n.toLocaleString('vi-VN');
 }
-function getMonthLabel(k) { const[y,m]=k.split('-'); return `T${parseInt(m)}/${y}`; }
+function getML(k) { const[y,m]=k.split('-'); return `T${parseInt(m)}/${y}`; }
 
 // ── RENDER HOME ───────────────────────────────────────────────────────────────
-function renderAll() {
-  // header
-  document.getElementById('month-label').textContent = getMonthLabel(currentMonth);
-  const n=new Date();
-  document.getElementById('sub-date').textContent =
-    n.toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'numeric'});
+function renderHome() {
+  document.getElementById('month-label').textContent = getML(currentMonth);
+  const total  = debts.reduce((s,d)=>s+Number(d.debt),0);
+  const month  = debts.reduce((s,d)=>s+Number(d.monthly),0);
+  const paid   = debts.filter(d=>isPaid(d.id));
+  const paidAmt= paid.reduce((s,d)=>s+Number(d.monthly),0);
+  const left   = month - paidAmt;
+  const pct    = month ? Math.round(paidAmt/month*100) : 0;
 
-  // kpi
-  const totalDebt    = debts.reduce((s,d)=>s+Number(d.debt),0);
-  const totalMonthly = debts.reduce((s,d)=>s+Number(d.monthly),0);
-  const paidDebts    = debts.filter(d=>isPaid(d.id));
-  const paidAmount   = paidDebts.reduce((s,d)=>s+Number(d.monthly),0);
-  const leftAmount   = totalMonthly - paidAmount;
-  const pct          = totalMonthly ? Math.round(paidAmount/totalMonthly*100) : 0;
-
-  document.getElementById('kpi-debt').textContent    = fmt(totalDebt);
-  document.getElementById('kpi-monthly').textContent = fmt(totalMonthly);
-  document.getElementById('kpi-paid').textContent    = `${paidDebts.length}/${debts.length}`;
-  document.getElementById('kpi-left').textContent    = fmt(leftAmount);
+  document.getElementById('h-debt').innerHTML    = `${fmt(total)}<span>đ</span>`;
+  document.getElementById('h-sub').textContent   = `${debts.length} khoản đang theo dõi`;
+  document.getElementById('h-monthly').textContent= fmt(month);
+  document.getElementById('h-paid').textContent  = `${paid.length}/${debts.length}`;
+  document.getElementById('h-left').textContent  = fmt(left);
   document.getElementById('progress-fill').style.width = pct+'%';
   document.getElementById('progress-pct').textContent  = pct+'%';
 
-  // cards
+  renderCards();
+}
+
+function renderCards() {
   const list = document.getElementById('card-list');
   list.innerHTML = '';
 
@@ -378,70 +723,62 @@ function renderAll() {
   const td = show.filter(d=>d.type==='td');
   const tc = show.filter(d=>d.type==='tc');
 
-  if(td.length) { addSectionHeader(list,'💳 Thẻ Tín Dụng — chỉ trả lãi'); td.forEach(d=>addCard(list,d)); }
-  if(tc.length) { addSectionHeader(list,'💰 Vay Tín Chấp — trả gốc & lãi'); tc.forEach(d=>addCard(list,d)); }
-
   if(!show.length) {
-    list.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--muted);font-family:'Space Mono',monospace;font-size:13px">
-      ✅ Tất cả đã thanh toán!<br><span style="font-size:11px;opacity:.6">tháng ${getMonthLabel(currentMonth)}</span></div>`;
+    list.innerHTML = `<div class="empty-state">✅ Tháng này thanh toán xong rồi!</div>`;
+    return;
   }
+
+  if(td.length) { addSec(list,'💳 Thẻ Tín Dụng'); td.forEach(d=>addCard(list,d)); }
+  if(tc.length) { addSec(list,'💰 Vay Tín Chấp'); tc.forEach(d=>addCard(list,d)); }
+
+  // bottom spacer inside scroll
+  const sp = document.createElement('div'); sp.style.height='12px'; list.appendChild(sp);
 }
 
-function addSectionHeader(list, text) {
-  const h=document.createElement('div');
-  h.className='section-header'; h.style.marginTop='6px'; h.textContent=text;
-  list.appendChild(h);
+function addSec(list, txt) {
+  const h=document.createElement('div'); h.className='sec-label'; h.style.marginTop='4px'; h.textContent=txt; list.appendChild(h);
+  const w=document.createElement('div'); w.className='cards'; w.id='cards-wrap-'+Date.now(); list.appendChild(w); return w;
 }
-
-const ICONS = {td:'🏦',tc:'💰'};
-const BGTD  = ['#2a1a10','#1a1a2a','#1a2210','#10221a'];
-const BGTC  = ['#1a1030','#10301a','#301010','#301a10','#10202a'];
 
 function addCard(list, d) {
+  // find last .cards wrapper
+  const wrappers = list.querySelectorAll('.cards');
+  const wrap = wrappers[wrappers.length-1];
   const paid = isPaid(d.id);
-  const idx  = debts.indexOf(d);
-  const bg   = d.type==='td' ? (BGTD[idx%BGTD.length]) : (BGTC[idx%BGTC.length]);
-
-  const card = document.createElement('div');
-  card.className = 'debt-card'+(paid?' paid':'');
-  card.id = 'card-'+d.id;
-
-  card.innerHTML = `
-    <div class="card-top" onclick="tapCardTop('${d.id}')">
-      <div class="card-icon" style="background:${bg}">${ICONS[d.type]}</div>
-      <div class="card-info">
-        <div class="card-name">${d.name}</div>
-        <div class="card-type">${d.note||''}</div>
+  const div  = document.createElement('div');
+  div.className = 'debt-card'+(paid?' paid':'');
+  div.id = 'dc-'+d.id;
+  div.innerHTML = `
+    <div class="dc-main" onclick="tapTop('${d.id}')">
+      <div class="dc-dot ${d.type}${paid?' paid-dot':''}"></div>
+      <div class="dc-info">
+        <div class="dc-name">${d.name}</div>
+        <div class="dc-meta">${d.note||''}</div>
       </div>
-      <div class="card-amount">
-        <div class="card-monthly type-${d.type}">${fmt(d.monthly)}<span style="font-size:10px;font-weight:400">đ</span></div>
-        <div class="card-due">/ tháng</div>
+      <div class="dc-right">
+        <div class="dc-amount ${d.type}">${fmt(d.monthly)}đ</div>
+        <div class="dc-unit">/ tháng</div>
       </div>
-      <button class="check-btn${paid?' checked':''}" id="btn-${d.id}"
-        onclick="event.stopPropagation();tapCheck('${d.id}')" aria-label="Tick">
-        ${paid?'✓':''}
-      </button>
+      <button class="check-btn${paid?' checked':''}" id="cb-${d.id}"
+        onclick="event.stopPropagation();tapCheck('${d.id}')">✓</button>
     </div>
-    <div class="card-detail" id="detail-${d.id}">
-      <div class="card-detail-inner">
-        <div class="detail-item"><label>Dư nợ</label><p>${fmt(d.debt)}đ</p></div>
-        <div class="detail-item"><label>Trả/tháng</label><p>${fmt(d.monthly)}đ</p></div>
-        <div class="detail-item"><label>Trạng thái</label>
-          <p id="status-${d.id}" style="color:${paid?'var(--green)':'var(--orange)'}">
+    <div class="dc-detail" id="dd-${d.id}">
+      <div class="dc-detail-inner">
+        <div class="dc-di"><label>Dư nợ</label><p>${fmt(d.debt)}đ</p></div>
+        <div class="dc-di"><label>Trả/tháng</label><p>${fmt(d.monthly)}đ</p></div>
+        <div class="dc-di"><label>Trạng thái</label>
+          <p id="ds-${d.id}" style="color:${paid?'var(--accent)':'var(--orange)'}">
             ${paid?'Đã TT ✓':'Chờ TT'}
           </p>
         </div>
       </div>
     </div>`;
-  list.appendChild(card);
+  wrap.appendChild(div);
 }
 
-function tapCardTop(id) {
-  const el = document.getElementById('detail-'+id);
-  if(openDetail && openDetail!==id) {
-    const prev = document.getElementById('detail-'+openDetail);
-    if(prev) prev.classList.remove('open');
-  }
+function tapTop(id) {
+  const el = document.getElementById('dd-'+id);
+  if(openDetail && openDetail!==id) { const p=document.getElementById('dd-'+openDetail); if(p) p.classList.remove('open'); }
   if(openDetail===id){ el.classList.remove('open'); openDetail=null; }
   else { el.classList.add('open'); openDetail=id; }
 }
@@ -449,79 +786,83 @@ function tapCardTop(id) {
 function tapCheck(id) {
   toggleTick(id);
   const paid = isPaid(id);
-  const btn  = document.getElementById('btn-'+id);
-  const card = document.getElementById('card-'+id);
-  const stat = document.getElementById('status-'+id);
+  const cb   = document.getElementById('cb-'+id);
+  const dc   = document.getElementById('dc-'+id);
+  const ds   = document.getElementById('ds-'+id);
+  const dot  = dc.querySelector('.dc-dot');
 
-  btn.className = 'check-btn'+(paid?' checked pop':'');
-  btn.textContent = paid?'✓':'';
-  card.className  = 'debt-card'+(paid?' paid':'');
-  if(stat){ stat.style.color=paid?'var(--green)':'var(--orange)'; stat.textContent=paid?'Đã TT ✓':'Chờ TT'; }
+  cb.className = 'check-btn'+(paid?' checked pop':'');
+  dc.className = 'debt-card'+(paid?' paid':'');
+  if(ds){ ds.style.color=paid?'var(--accent)':'var(--orange)'; ds.textContent=paid?'Đã TT ✓':'Chờ TT'; }
+  if(dot){ dot.className='dc-dot '+(paid?'paid-dot':debts.find(x=>x.id===id)?.type||''); }
 
-  const d=debts.find(x=>x.id===id);
-  showToast(paid?`✓ ${d.name} – đã thanh toán`:`↩ ${d.name} – bỏ tick`);
-  setTimeout(()=>{ const b=document.getElementById('btn-'+id); if(b)b.classList.remove('pop'); },300);
+  setTimeout(()=>{ const b=document.getElementById('cb-'+id); if(b) b.classList.remove('pop'); },250);
 
-  // re-render KPI only
-  const totalMonthly = debts.reduce((s,d)=>s+Number(d.monthly),0);
-  const paidDebts    = debts.filter(d=>isPaid(d.id));
-  const paidAmount   = paidDebts.reduce((s,d)=>s+Number(d.monthly),0);
-  const leftAmount   = totalMonthly-paidAmount;
-  const pct          = totalMonthly?Math.round(paidAmount/totalMonthly*100):0;
-  document.getElementById('kpi-paid').textContent    = `${paidDebts.length}/${debts.length}`;
-  document.getElementById('kpi-left').textContent    = fmt(leftAmount);
+  const d = debts.find(x=>x.id===id);
+  showToast(paid?`✓ ${d.name} đã thanh toán`:`↩ ${d.name} bỏ tick`);
+
+  updateKPI();
+  if(currentFilter==='unpaid') setTimeout(()=>{ openDetail=null; renderHome(); },500);
+}
+
+function updateKPI() {
+  const month  = debts.reduce((s,d)=>s+Number(d.monthly),0);
+  const paid   = debts.filter(d=>isPaid(d.id));
+  const paidAmt= paid.reduce((s,d)=>s+Number(d.monthly),0);
+  const left   = month - paidAmt;
+  const pct    = month ? Math.round(paidAmt/month*100) : 0;
+  document.getElementById('h-paid').textContent  = `${paid.length}/${debts.length}`;
+  document.getElementById('h-left').textContent  = fmt(left);
   document.getElementById('progress-fill').style.width = pct+'%';
   document.getElementById('progress-pct').textContent  = pct+'%';
-
-  if(currentFilter==='unpaid') setTimeout(()=>{ openDetail=null; renderAll(); },600);
 }
 
 // ── FILTER ────────────────────────────────────────────────────────────────────
 function filterTab(f, el) {
   currentFilter=f; openDetail=null;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
-  renderAll();
+  renderCards();
 }
 
 // ── MONTH PICKER ──────────────────────────────────────────────────────────────
 function openMonthPicker() {
-  const grid=document.getElementById('month-grid'); grid.innerHTML='';
-  const year=currentMonth.split('-')[0];
-  document.querySelector('#month-picker .month-sheet h3').textContent=`Chọn tháng — ${year}`;
+  const yr = currentMonth.split('-')[0];
+  document.getElementById('month-sheet-title').textContent = `Chọn tháng — ${yr}`;
+  const grid = document.getElementById('month-grid'); grid.innerHTML='';
   for(let m=1;m<=12;m++){
-    const key=`${year}-${String(m).padStart(2,'0')}`;
-    const btn=document.createElement('div');
-    btn.className='month-btn'+(key===currentMonth?' active':'');
-    btn.textContent=`T${m}`;
-    btn.onclick=()=>{ currentMonth=key; closeMonthPicker(); openDetail=null; renderAll(); };
-    grid.appendChild(btn);
+    const key=`${yr}-${String(m).padStart(2,'0')}`;
+    const b=document.createElement('div');
+    b.className='m-btn'+(key===currentMonth?' active':'');
+    b.textContent=`T${m}`;
+    b.onclick=()=>{ currentMonth=key; closeMonthPicker(); openDetail=null; renderHome(); };
+    grid.appendChild(b);
   }
   document.getElementById('month-picker').classList.add('open');
 }
-function closeMonthPicker(e) {
-  if(!e||e.target===document.getElementById('month-picker'))
-    document.getElementById('month-picker').classList.remove('open');
-}
+function closeMonthPicker(){ document.getElementById('month-picker').classList.remove('open'); }
+function closeMonthBg(e){ if(e.target===document.getElementById('month-picker')) closeMonthPicker(); }
 
-// ── SETTINGS RENDER ───────────────────────────────────────────────────────────
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
 function renderSettings() {
   ['td','tc'].forEach(type=>{
-    const el=document.getElementById('list-'+type);
-    const filtered=debts.filter(d=>d.type===type);
-    if(!filtered.length){ el.innerHTML=`<div style="padding:14px;color:var(--muted);font-size:12px;font-family:'Space Mono',monospace;text-align:center">Chưa có khoản nào</div>`; return; }
+    const el = document.getElementById('list-'+type);
+    const list = debts.filter(d=>d.type===type);
+    if(!list.length){ el.innerHTML=`<div style="padding:16px;text-align:center;color:var(--sub);font-size:12px;font-weight:700">Chưa có khoản nào</div>`; return; }
     el.innerHTML='';
-    filtered.forEach((d,i)=>{
+    list.forEach((d,i)=>{
       const row=document.createElement('div');
-      row.className='setting-row';
-      if(i<filtered.length-1) row.style.borderBottom='1px solid var(--border)';
+      row.className='settings-row';
+      if(i<list.length-1) row.style.borderBottom='1px solid var(--border)';
       row.innerHTML=`
-        <div class="setting-icon" style="background:${type==='td'?'#2a1a10':'#1a1030'}">${ICONS[type]}</div>
-        <div class="setting-info" onclick="openEditModal('${d.id}')" style="cursor:pointer">
-          <div class="setting-name">${d.name}</div>
-          <div class="setting-val">${fmt(d.monthly)}đ/th · ${d.note||''}</div>
+        <div class="s-icon" style="background:${type==='td'?'rgba(255,179,71,0.12)':'rgba(87,200,255,0.12)'}">
+          ${type==='td'?'💳':'💰'}
         </div>
-        <button class="del-btn" onclick="confirmDelete('${d.id}')">✕</button>`;
+        <div class="s-info" onclick="openEditModal('${d.id}')" style="cursor:pointer;flex:1">
+          <div class="s-name">${d.name}</div>
+          <div class="s-val">${fmt(d.monthly)}đ/th · ${d.note||''}</div>
+        </div>
+        <button class="s-del" onclick="confirmDel('${d.id}')">✕</button>`;
       el.appendChild(row);
     });
   });
@@ -529,94 +870,83 @@ function renderSettings() {
 
 // ── MODAL ─────────────────────────────────────────────────────────────────────
 function openAddModal(type) {
-  editingId=null; addingType=type;
-  document.getElementById('modal-title').textContent=type==='td'?'Thêm thẻ tín dụng':'Thêm khoản vay';
+  editingId=null;
+  document.getElementById('modal-title').textContent = type==='td'?'Thêm thẻ tín dụng':'Thêm khoản vay';
   document.getElementById('f-name').value='';
   document.getElementById('f-type').value=type;
   document.getElementById('f-debt').value='';
   document.getElementById('f-monthly').value='';
   document.getElementById('f-note').value='';
-  document.getElementById('btn-delete').style.display='none';
+  document.getElementById('btn-del').style.display='none';
   document.getElementById('modal').classList.add('open');
-  setTimeout(()=>document.getElementById('f-name').focus(),300);
+  setTimeout(()=>document.getElementById('f-name').focus(),350);
 }
 function openEditModal(id) {
   const d=debts.find(x=>x.id===id); if(!d)return;
   editingId=id;
-  document.getElementById('modal-title').textContent='Chỉnh sửa khoản nợ';
+  document.getElementById('modal-title').textContent='Chỉnh sửa';
   document.getElementById('f-name').value=d.name;
   document.getElementById('f-type').value=d.type;
   document.getElementById('f-debt').value=d.debt;
   document.getElementById('f-monthly').value=d.monthly;
   document.getElementById('f-note').value=d.note||'';
-  document.getElementById('btn-delete').style.display='block';
+  document.getElementById('btn-del').style.display='block';
   document.getElementById('modal').classList.add('open');
 }
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
-function closeModalOutside(e) { if(e.target===document.getElementById('modal')) closeModal(); }
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+function closeModalBg(e){ if(e.target===document.getElementById('modal')) closeModal(); }
 
 function saveDebt() {
-  const name    = document.getElementById('f-name').value.trim();
-  const type    = document.getElementById('f-type').value;
-  const debt    = Number(document.getElementById('f-debt').value)||0;
-  const monthly = Number(document.getElementById('f-monthly').value)||0;
-  const note    = document.getElementById('f-note').value.trim();
+  const name=document.getElementById('f-name').value.trim();
+  const type=document.getElementById('f-type').value;
+  const debt=Number(document.getElementById('f-debt').value)||0;
+  const monthly=Number(document.getElementById('f-monthly').value)||0;
+  const note=document.getElementById('f-note').value.trim();
   if(!name){ showToast('⚠️ Nhập tên ngân hàng'); return; }
   if(!monthly){ showToast('⚠️ Nhập số tiền trả/tháng'); return; }
-
-  if(editingId) {
+  if(editingId){
     const d=debts.find(x=>x.id===editingId);
-    if(d){ d.name=name; d.type=type; d.debt=debt; d.monthly=monthly; d.note=note; }
+    if(d){d.name=name;d.type=type;d.debt=debt;d.monthly=monthly;d.note=note;}
   } else {
-    const id = 'debt_'+Date.now();
-    debts.push({id,name,type,debt,monthly,note});
+    debts.push({id:'d'+Date.now(),name,type,debt,monthly,note});
   }
-  saveDebts(); closeModal();
-  renderSettings(); renderAll();
-  showToast(editingId?'✓ Đã cập nhật':'✓ Đã thêm khoản nợ');
+  saveDebts(); closeModal(); renderSettings(); renderHome();
+  showToast(editingId?'✓ Đã cập nhật':'✓ Đã thêm');
 }
-
-function deleteDebt() {
+function deleteDebt(){
   if(!editingId)return;
   if(!confirm('Xoá khoản này?'))return;
   debts=debts.filter(x=>x.id!==editingId);
-  saveDebts(); closeModal();
-  renderSettings(); renderAll();
+  saveDebts(); closeModal(); renderSettings(); renderHome();
   showToast('🗑 Đã xoá');
 }
-function confirmDelete(id) {
-  openEditModal(id);
-}
-
-function resetAllData() {
-  if(!confirm('Xoá toàn bộ dữ liệu và reset về mặc định?'))return;
-  debts=JSON.parse(JSON.stringify(DEFAULT_DEBTS));
-  ticks={};
-  saveDebts(); saveTicks();
-  renderSettings(); renderAll();
+function confirmDel(id){ openEditModal(id); }
+function resetAllData(){
+  if(!confirm('Reset toàn bộ về mặc định?'))return;
+  debts=JSON.parse(JSON.stringify(DEFAULT_DEBTS)); ticks={};
+  saveDebts(); saveTicks(); renderSettings(); renderHome();
   showToast('✓ Đã reset');
 }
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
 function switchPage(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
   openDetail=null;
   if(name==='settings') renderSettings();
-  if(name==='home') renderAll();
+  if(name==='home') renderHome();
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2200);
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-loadAll(); initMonth(); renderAll();
+load(); initMonth(); renderHome();
 </script>
 </body>
 </html>
