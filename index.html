@@ -88,7 +88,7 @@
     <div class="dash-card wallet">
       <div class="dc-label">Tiền trong túi</div>
       <div class="dc-val" id="kpi-wallet">—</div>
-      <div class="dc-unit">số dư thực tế hiện tại</div>
+      <div class="dc-unit">thu − chi − nợ ± điều chỉnh</div>
     </div>
   </div>
 
@@ -191,7 +191,7 @@
     </button>
   </div>
   <div class="txn-list" id="txn-list"></div>
-  <div style="height:12px"></div>
+
 </div>
 </div>
 
@@ -290,23 +290,17 @@
   <!-- Thư mục lớn dạng accordion -->
   <div class="acc-group" id="acc-wallet">
     <div class="acc-hdr" onclick="toggleAcc('acc-wallet')">
-      <div class="acc-ico" style="background:rgba(87,200,255,.1)">💰</div>
-      <div class="acc-info"><div class="acc-title">Số dư & Tiết kiệm</div><div class="acc-sub" id="acc-wallet-sub">Số tiền thực tế trong túi</div></div>
+      <div class="acc-ico" style="background:rgba(87,200,255,.1)">👛</div>
+      <div class="acc-info"><div class="acc-title">Số dư & Tiết kiệm</div><div class="acc-sub" id="acc-wallet-sub">Chưa điều chỉnh</div></div>
       <div class="acc-arrow" id="arr-acc-wallet">▸</div>
     </div>
     <div class="acc-body" id="body-acc-wallet">
-      <div class="sg-label">💵 Số dư hiện tại</div>
+      <div class="sg-label">Điều chỉnh tiền trong túi</div>
       <div class="slist" style="margin-bottom:12px">
-        <div class="srow" style="cursor:default">
-          <div class="s-ico" style="background:rgba(87,200,255,.1)">👛</div>
-          <div class="s-info">
-            <div class="s-name">Tiền trong túi</div>
-            <div class="s-val">Số tiền thực tế bạn đang có</div>
-          </div>
-        </div>
-        <div class="srow" style="cursor:default;padding-top:8px;padding-bottom:12px">
+        <div class="srow" style="cursor:default;flex-direction:column;align-items:flex-start;gap:8px">
+          <div class="s-val" style="font-size:11px">Nhập số tiền để cân chỉnh nếu thực tế lệch với tính toán</div>
           <div style="display:flex;gap:8px;align-items:center;width:100%">
-            <input id="wallet-base-input" type="number" inputmode="numeric" placeholder="Nhập số tiền hiện có"
+            <input id="wallet-base-input" type="number" inputmode="numeric" placeholder="VD: 500000 hoặc -200000"
               style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;
               color:var(--text);font-family:'Mulish',sans-serif;font-size:14px;font-weight:700;outline:none">
             <button onclick="saveWalletBase()"
@@ -324,7 +318,7 @@
     </div>
   </div>
 
-  <div class="acc-group" id="acc-finance">
+    <div class="acc-group" id="acc-finance">
     <div class="acc-hdr" onclick="toggleAcc('acc-finance')">
       <div class="acc-ico" style="background:rgba(200,255,87,.1)">💵</div>
       <div class="acc-info"><div class="acc-title">Tài chính</div><div class="acc-sub">Thu nhập & chi phí cố định</div></div>

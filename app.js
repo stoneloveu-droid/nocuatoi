@@ -240,10 +240,11 @@ function renderHome(){
   document.getElementById('kpi-remain').style.color    =remain>=0?'var(--purple)':'var(--red)';
   document.getElementById('kpi-debt-total').textContent=fmt(totalDebtLeft);
 
+  // Tiền trong túi = thu nhập - chi cố định - trả nợ - chi đột xuất + thu đột xuất + điều chỉnh
   const monthTxnsAll=txns[currentMonth]||[];
   const txnInHome =monthTxnsAll.filter(t=>t.type==='in') .reduce((s,t)=>s+Number(t.amount),0);
-  const txnOutHome=monthTxnsAll.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
-  const wallet=walletBase+txnInHome-txnOutHome;
+  const txnOutHome=monthTxns.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
+  const wallet = totalIncome - totalExpense - totalDebtPay + txnInHome - txnOutHome + (walletBase||0);
   const wEl=document.getElementById('kpi-wallet');
   if(wEl){ wEl.textContent=fmt(wallet); wEl.style.color=wallet>=0?'var(--blue)':'var(--red)'; }
 
@@ -400,6 +401,8 @@ window.filterTab=function(f,el){
 function renderTxnPage(){
   const tsl=document.getElementById('txn-subtitle');
   if(tsl) tsl.textContent=getML(currentMonth);
+  const tml=document.getElementById('txn-month-label');
+  if(tml) tml.textContent=getML(currentMonth);
 
   const monthTxns=txns[currentMonth]||[];
   const txnIn =monthTxns.filter(t=>t.type==='in') .reduce((s,t)=>s+Number(t.amount),0);
@@ -408,7 +411,6 @@ function renderTxnPage(){
   document.getElementById('txn-kpi-in').textContent =fmt(txnIn);
   document.getElementById('txn-kpi-out').textContent=fmt(txnOut);
 
-  // wallet input sync
   const wi=document.getElementById('wallet-base-input');
   if(wi) wi.value=walletBase||'';
 
@@ -696,17 +698,10 @@ function renderSettings(){
   const activeCount=debts.filter(d=>!d.settled).length;
   const sub=document.getElementById('acc-debt-sub');
   if(sub) sub.textContent=`${activeCount} khoản đang hoạt động`;
-  // wallet
   const wi=document.getElementById('wallet-base-input');
   if(wi) wi.value=walletBase||'';
   const wsub=document.getElementById('acc-wallet-sub');
-  if(wsub){
-    const monthTxns=txns[currentMonth]||[];
-    const txnIn =monthTxns.filter(t=>t.type==='in') .reduce((s,t)=>s+Number(t.amount),0);
-    const txnOut=monthTxns.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
-    const wallet=walletBase+txnIn-txnOut;
-    wsub.textContent=`Hiện tại: ${fmt(wallet)}`;
-  }
+  if(wsub) wsub.textContent=walletBase?(walletBase>0?`Điều chỉnh +${fmt(walletBase)}`:`Điều chỉnh ${fmt(walletBase)}`):'Chưa điều chỉnh';
   renderSavingList();
 }
 

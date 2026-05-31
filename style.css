@@ -100,7 +100,7 @@ html,body{
 .dash-card.remain    {background:linear-gradient(135deg,#1A1024,#120F1A);color:var(--purple)}
 .dash-card.debt-total{background:linear-gradient(135deg,#1A1024,#120F1A);color:var(--purple);grid-column:1/-1}
 .dash-card.debt-total .dc-val{font-size:26px}
-.dash-card.wallet{background:linear-gradient(135deg,#0F1A2A,#0A1420);color:var(--blue);grid-column:1/-1}
+.dash-card.wallet{background:linear-gradient(135deg,#0F1A2A,#0A1218);color:var(--blue);grid-column:1/-1}
 
 /* ── RATIO BAR ── */
 .ratio-wrap{padding:0 16px 4px;margin-top:12px}
