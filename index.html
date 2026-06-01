@@ -169,7 +169,20 @@
 <div class="page" id="page-settings"><div class="scroll">
   <div class="top-bar" style="padding-bottom:8px">
     <div><h1>⚙️ Cài đặt</h1><p id="acc-email-sub">—</p></div>
-    <div class="sett-avatar" id="sett-avatar">👤</div>
+    <div class="sett-menu-wrap">
+      <div class="sett-avatar" id="sett-avatar" onclick="toggleSettMenu()">👤</div>
+      <div class="sett-menu" id="sett-menu">
+        <div class="sett-menu-user">
+          <div class="s-name" id="acc-name">—</div>
+          <div class="s-val" id="acc-email">—</div>
+        </div>
+        <div class="sett-menu-sep"></div>
+        <div class="sett-menu-item" onclick="openThemeSheet();toggleSettMenu()">🎨 Giao diện</div>
+        <div class="sett-menu-sep"></div>
+        <div class="sett-menu-item danger" onclick="resetAll();toggleSettMenu()">🗑️ Xoá & reset dữ liệu</div>
+        <div class="sett-menu-item danger" onclick="doSignOut();toggleSettMenu()">🚪 Đăng xuất</div>
+      </div>
+    </div>
   </div>
 
   <!-- Số dư & Tiết kiệm -->
@@ -179,7 +192,7 @@
       <div class="acc-info"><div class="acc-title">Số dư & Tiết kiệm</div><div class="acc-sub" id="acc-wallet-sub">Tiền thực tế trong túi</div></div>
       <div class="acc-arrow" id="arr-acc-wallet">▸</div>
     </div>
-    <div class="acc-body" id="body-acc-wallet">
+    <div class="acc-body" id="body-acc-wallet"><div class="acc-body-inner">
       <div class="sg-label">💵 Số dư hiện tại</div>
       <div class="slist" style="margin-bottom:12px">
         <div class="srow" style="cursor:default">
@@ -200,7 +213,7 @@
       </div>
       <div class="save-hist" id="saving-hist"></div>
       <div class="add-row" style="border-color:rgba(87,255,179,.3);color:var(--green);margin-top:8px" onclick="openSavingModal()">＋ Thêm vào quỹ</div>
-    </div>
+    </div></div>
   </div>
 
   <!-- Tài chính -->
@@ -210,14 +223,14 @@
       <div class="acc-info"><div class="acc-title">Tài chính</div><div class="acc-sub">Thu nhập & chi phí cố định</div></div>
       <div class="acc-arrow" id="arr-acc-finance">▸</div>
     </div>
-    <div class="acc-body" id="body-acc-finance">
+    <div class="acc-body" id="body-acc-finance"><div class="acc-body-inner">
       <div class="sg-label">💵 Thu nhập hàng tháng</div>
       <div class="slist" id="list-income"></div>
       <div class="add-row" onclick="openFinModal('income')">＋ Thêm nguồn thu nhập</div>
       <div class="sg-label" style="margin-top:14px">🧾 Chi phí cố định / tháng</div>
       <div class="slist" id="list-expense"></div>
       <div class="add-row" onclick="openFinModal('expense')">＋ Thêm chi phí</div>
-    </div>
+    </div></div>
   </div>
 
   <!-- Khoản nợ -->
@@ -227,25 +240,22 @@
       <div class="acc-info"><div class="acc-title">Khoản nợ</div><div class="acc-sub" id="acc-debt-sub">Đang tải…</div></div>
       <div class="acc-arrow" id="arr-acc-debt">▸</div>
     </div>
-    <div class="acc-body" id="body-acc-debt">
+    <div class="acc-body" id="body-acc-debt"><div class="acc-body-inner">
       <div class="sg-label">💳 Thẻ Tín Dụng</div>
       <div class="slist" id="list-td"></div>
       <div class="add-row" onclick="openDebtModal('td')">＋ Thêm thẻ tín dụng</div>
       <div class="sg-label" style="margin-top:14px">💰 Vay Tín Chấp</div>
       <div class="slist" id="list-tc"></div>
       <div class="add-row" onclick="openDebtModal('tc')">＋ Thêm khoản vay</div>
-    </div>
+    </div></div>
   </div>
+  <div style="height:16px"></div>
 
-  <!-- Giao diện -->
-  <div class="acc-group" id="acc-display">
-    <div class="acc-hdr" onclick="toggleAcc('acc-display')">
-      <div class="acc-ico" style="background:rgba(197,123,255,.1)">🎨</div>
-      <div class="acc-info"><div class="acc-title">Giao diện</div><div class="acc-sub" id="theme-sub">Theme hiện tại</div></div>
-      <div class="acc-arrow" id="arr-acc-display">▸</div>
-    </div>
-    <div class="acc-body" id="body-acc-display">
-      <div class="sg-label">Chọn theme</div>
+  <!-- THEME SHEET -->
+  <div class="modal-bg" id="modal-theme" onclick="closeMBg('modal-theme',event)">
+    <div class="msheet">
+      <div class="mhandle"></div>
+      <div class="mtitle">Giao diện</div>
       <div class="theme-picker">
         <div class="tp-btn active" id="tp-dark" onclick="setTheme('dark')">
           <div class="tp-swatch" style="background:#0A0A0F;border:2px solid #333"></div>
@@ -260,47 +270,9 @@
           <div class="tp-label">AMOLED</div>
         </div>
       </div>
+      <div class="mbtns"><button class="mbtn mbtn-cancel" onclick="closeModal('modal-theme')">Đóng</button></div>
     </div>
   </div>
-
-  <!-- Tài khoản -->
-  <div class="acc-group" id="acc-account">
-    <div class="acc-hdr" onclick="toggleAcc('acc-account')">
-      <div class="acc-ico" style="background:rgba(87,200,255,.1)">👤</div>
-      <div class="acc-info"><div class="acc-title">Tài khoản</div><div class="acc-sub" id="acc-name-sub">—</div></div>
-      <div class="acc-arrow" id="arr-acc-account">▸</div>
-    </div>
-    <div class="acc-body" id="body-acc-account">
-      <div class="slist">
-        <div class="srow">
-          <div class="s-ico" style="background:rgba(87,200,255,.1)">👤</div>
-          <div class="s-info"><div class="s-name" id="acc-name">—</div><div class="s-val" id="acc-email">—</div></div>
-        </div>
-        <div class="srow" onclick="doSignOut()" style="cursor:pointer">
-          <div class="s-ico" style="background:rgba(255,87,87,.1)">🚪</div>
-          <div class="s-info"><div class="s-name" style="color:var(--red)">Đăng xuất</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Nguy hiểm -->
-  <div class="acc-group" id="acc-danger">
-    <div class="acc-hdr" onclick="toggleAcc('acc-danger')">
-      <div class="acc-ico" style="background:rgba(255,87,87,.1)">⚠️</div>
-      <div class="acc-info"><div class="acc-title">Vùng nguy hiểm</div><div class="acc-sub">Reset & xoá dữ liệu</div></div>
-      <div class="acc-arrow" id="arr-acc-danger">▸</div>
-    </div>
-    <div class="acc-body" id="body-acc-danger">
-      <div class="slist">
-        <div class="srow danger" onclick="resetAll()" style="cursor:pointer">
-          <div class="s-ico" style="background:rgba(255,87,87,.12)">🗑️</div>
-          <div class="s-info"><div class="s-name">Xoá toàn bộ & reset</div><div class="s-val">Khôi phục dữ liệu mặc định</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div style="height:16px"></div>
 </div></div>
 
 <!-- BOTTOM NAV -->
