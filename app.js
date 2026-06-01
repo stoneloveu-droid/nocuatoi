@@ -51,6 +51,8 @@ let editDebtId=null, editFinId=null, finMode='income';
 let editTxnId=null, txnType='out';
 let uid=null, unsubSnap=null;
 let currentTheme='dark';
+// Flag chặn onSnapshot re-render khi chính mình vừa save
+let isSavingToFirestore=false;
 
 function clone(x){return JSON.parse(JSON.stringify(x));}
 function initMonth(){
@@ -64,6 +66,7 @@ function userDoc(){return doc(db,'users',uid);}
 function startRealtimeSync(){
   if(unsubSnap) unsubSnap();
   unsubSnap = onSnapshot(userDoc(), (snap)=>{
+    if(isSavingToFirestore) return; // bỏ qua echo từ chính mình
     if(!snap.exists()){
       debts=clone(DEF_DEBTS); income=clone(DEF_INCOME); expense=clone(DEF_EXPENSE);
       ticks={}; txns={}; savings=[]; walletBase=0; lastAutoMonth='';
@@ -87,11 +90,15 @@ function startRealtimeSync(){
 
 async function saveToFirestore(){
   if(!uid) return;
+  isSavingToFirestore=true;
   setSyncBadge('syncing','Đang lưu…');
   try{
     await setDoc(userDoc(),{debts,income,expense,ticks,txns,savings,walletBase,lastAutoMonth},{merge:true});
     setSyncBadge('synced','Đã đồng bộ');
   }catch(e){setSyncBadge('error','Lỗi lưu');console.error(e);}
+  finally{
+    setTimeout(()=>{isSavingToFirestore=false;},1200);
+  }
 }
 
 function setSyncBadge(cls,txt){
@@ -958,9 +965,14 @@ window.toggleSettMenu=function(){
   if(btn) btn.classList.toggle('active',!isOpen);
 };
 window.openThemeSheet=function(){
-  closeModal('modal-theme');
-  // Small delay so dropdown closes first
-  setTimeout(()=>document.getElementById('modal-theme')?.classList.add('open'),50);
+  // Close dropdown first, then open theme sheet
+  const menu=document.getElementById('sett-menu');
+  const overlay=document.getElementById('sett-dd-overlay');
+  const btn=document.getElementById('sett-more-btn');
+  if(menu) menu.classList.remove('open');
+  if(overlay) overlay.classList.remove('open');
+  if(btn) btn.classList.remove('active');
+  setTimeout(()=>document.getElementById('modal-theme')?.classList.add('open'),80);
 };
 // ── INIT ──────────────────────────────────────────────────────
 initMonth();
