@@ -1,13 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously,
-  onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import {
-  getFirestore, doc, onSnapshot, setDoc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, onSnapshot, setDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ── FIREBASE CONFIG ────────────────────────────────────────────
+// ── FIREBASE CONFIG ──────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyA1Pde18_aLXilbvs1Q0fWbVtcApkAdJcs",
   authDomain: "vicuatoi.firebaseapp.com",
@@ -20,32 +17,33 @@ const fbApp = initializeApp(firebaseConfig);
 const auth  = getAuth(fbApp);
 const db    = getFirestore(fbApp);
 
-// ── DEFAULT DATA ───────────────────────────────────────────────
+// ── DEFAULTS ─────────────────────────────────────────────────
 const DEF_DEBTS = [
-  {id:'tp',      name:'TP Bank',    type:'td', debt:12000000,  monthly:216000,  note:'1.80%/th',   payDay:15},
-  {id:'ocb',     name:'OCB Bank',   type:'td', debt:36300000,  monthly:834900,  note:'2.30%/th',   payDay:20},
-  {id:'vp-td',   name:'VP Bank TD', type:'td', debt:40500000,  monthly:202500,  note:'0.50%/th',   payDay:10},
-  {id:'shin-td', name:'Shinhan TD', type:'td', debt:24500000,  monthly:318500,  note:'1.30%/th',   payDay:25},
-  {id:'vp-tc',   name:'VP Bank TC', type:'tc', debt:17227509,  monthly:1113000, curTerm:13, totalTerm:35, payDay:5},
-  {id:'shin-tc', name:'Shinhan TC', type:'tc', debt:29776139,  monthly:2312000, curTerm:46, totalTerm:60, payDay:8},
-  {id:'hsbc',    name:'HSBC Bank',  type:'tc', debt:31962457,  monthly:2991000, curTerm:49, totalTerm:60, payDay:12},
-  {id:'vib1',    name:'VIB Bank 1', type:'tc', debt:34200505,  monthly:2616000, curTerm:46, totalTerm:60, payDay:15},
-  {id:'vib2',    name:'VIB Bank 2', type:'tc', debt:28926071,  monthly:1417000, curTerm:11, totalTerm:36, payDay:20},
+  // Thẻ Tín Dụng: thêm limit, used, settleFee
+  {id:'tp',      name:'TP Bank',    type:'td', limit:20000000,  used:12000000,  monthly:216000,  note:'1.80%/th', payDay:15, settleFee:0},
+  {id:'ocb',     name:'OCB Bank',   type:'td', limit:50000000,  used:36300000,  monthly:834900,  note:'2.30%/th', payDay:20, settleFee:0},
+  {id:'vp-td',   name:'VP Bank TD', type:'td', limit:60000000,  used:40500000,  monthly:202500,  note:'0.50%/th', payDay:10, settleFee:0},
+  {id:'shin-td', name:'Shinhan TD', type:'td', limit:40000000,  used:24500000,  monthly:318500,  note:'1.30%/th', payDay:25, settleFee:0},
+  // Vay Tín Chấp: thêm principal, disburseDate, rate, auto-calc monthly & debt
+  {id:'vp-tc',   name:'VP Bank TC', type:'tc', principal:30000000, disburseDate:'2023-04-01', rate:1.5, totalTerm:35, curTerm:13, payDay:5,  note:''},
+  {id:'shin-tc', name:'Shinhan TC', type:'tc', principal:50000000, disburseDate:'2021-07-01', rate:1.2, totalTerm:60, curTerm:46, payDay:8,  note:''},
+  {id:'hsbc',    name:'HSBC Bank',  type:'tc', principal:55000000, disburseDate:'2021-04-01', rate:1.3, totalTerm:60, curTerm:49, payDay:12, note:''},
+  {id:'vib1',    name:'VIB Bank 1', type:'tc', principal:60000000, disburseDate:'2021-07-01', rate:1.4, totalTerm:60, curTerm:46, payDay:15, note:''},
+  {id:'vib2',    name:'VIB Bank 2', type:'tc', principal:35000000, disburseDate:'2023-06-01', rate:1.6, totalTerm:36, curTerm:11, payDay:20, note:''},
 ];
 const DEF_INCOME  = [{id:'sal',    name:'Lương cơ bản',         amount:12000000, note:'Hàng tháng'}];
 const DEF_EXPENSE = [{id:'living', name:'Sinh hoạt / gia đình', amount:8200000,  note:'Cố định'}];
-
 const SUGGEST_IN  = ['Thưởng','Freelance','Bán đồ','Hoàn tiền','Thu nợ','Lãi tiết kiệm','Quà tặng','Khác'];
-const SUGGEST_OUT = ['Ăn uống','Di chuyển','Mua sắm','Y tế','Sửa chữa','Giải trí','Học phí','Tiền điện nước','Khác'];
+const SUGGEST_OUT = ['Ăn uống','Di chuyển','Mua sắm','Y tế','Sửa chữa','Giải trí','Học phí','Điện nước','Khác'];
 
-// ── STATE ──────────────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────────
 let debts=[], income=[], expense=[], ticks={};
 let txns={}, savings=[], walletBase=0, lastAutoMonth='';
 let currentMonth='', currentFilter='all', openDetail=null;
 let editDebtId=null, editFinId=null, finMode='income';
 let editTxnId=null, txnType='out';
 let uid=null, unsubSnap=null;
-let fmtMode='short';
+let currentTheme='dark';
 
 function clone(x){return JSON.parse(JSON.stringify(x));}
 function initMonth(){
@@ -53,34 +51,102 @@ function initMonth(){
   currentMonth=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
 }
 
-// ── FORMAT ─────────────────────────────────────────────────────
+// ── FORMAT MONEY ─────────────────────────────────────────────
+// Mặc định: dấu chấm phân cách 3 số, VD: 12.000.000đ
 function fmt(n){
-  n=Number(n)||0;
-  if(fmtMode==='full')    return n.toLocaleString('vi-VN')+'đ';
-  if(fmtMode==='million'){
-    if(n>=1e9) return (n/1e9).toFixed(1)+' tỷ';
-    if(n>=1e6) return (n/1e6).toFixed(1)+' triệu';
-    if(n>=1e3) return (n/1e3).toFixed(0)+' nghìn';
-    return n.toLocaleString('vi-VN')+'đ';
-  }
-  if(n>=1e9) return (n/1e9).toFixed(1)+'Bđ';
-  if(n>=1e6) return (n/1e6).toFixed(1)+'Mđ';
-  if(n>=1e3) return (n/1e3).toFixed(0)+'Kđ';
+  n=Math.round(Number(n)||0);
   return n.toLocaleString('vi-VN')+'đ';
 }
-window.changeFmt=function(val){
-  fmtMode=val;localStorage.setItem('vn_fmt',val);
-  renderAll();
+function fmtNoUnit(n){
+  n=Math.round(Number(n)||0);
+  return n.toLocaleString('vi-VN');
+}
+// Format input khi gõ: tự thêm dấu chấm, trả raw number
+window.fmtInput=function(el){
+  const raw=el.value.replace(/\./g,'').replace(/[^0-9]/g,'');
+  const num=parseInt(raw)||0;
+  el.value=num?fmtNoUnit(num):'';
+  el.dataset.raw=num;
 };
+function getInputVal(id){
+  const el=document.getElementById(id);
+  if(!el) return 0;
+  // try data-raw first (set by fmtInput), fallback raw
+  if(el.dataset.raw!==undefined && el.dataset.raw!=='') return Number(el.dataset.raw);
+  return Number(el.value.replace(/\./g,''))||0;
+}
+function setInputFmt(id,val){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const n=Math.round(Number(val)||0);
+  el.value=n?fmtNoUnit(n):'';
+  el.dataset.raw=n;
+}
+
 function getML(k){const[y,m]=k.split('-');return `T${parseInt(m)}/${y}`;}
 
-// ── FIRESTORE ──────────────────────────────────────────────────
+// ── TC LOAN MATH ──────────────────────────────────────────────
+// Tính toán vay tín chấp dựa trên nợ gốc + lãi suất + kỳ
+function tcCalc(principal, ratePerMonth, totalTerm){
+  // PMT (trả đều)
+  const r=ratePerMonth/100;
+  if(!r||!totalTerm) return {monthly:0,totalInterest:0};
+  const pmt=principal*r*Math.pow(1+r,totalTerm)/(Math.pow(1+r,totalTerm)-1);
+  return {monthly:Math.round(pmt), totalInterest:Math.round(pmt*totalTerm-principal)};
+}
+// Tính dư nợ sau k kỳ đã trả
+function tcBalance(principal, ratePerMonth, totalTerm, paidTerms){
+  const r=ratePerMonth/100;
+  if(!r||!totalTerm) return Math.max(0, principal-principal/totalTerm*paidTerms);
+  const pmt=principal*r*Math.pow(1+r,totalTerm)/(Math.pow(1+r,totalTerm)-1);
+  const balance=principal*Math.pow(1+r,paidTerms)-pmt*(Math.pow(1+r,paidTerms)-1)/r;
+  return Math.max(0,Math.round(balance));
+}
+// Lấy monthly & debt từ object debt (TC)
+function tcGetMonthly(d){
+  return tcCalc(d.principal||0, d.rate||0, d.totalTerm||0).monthly;
+}
+function tcGetDebt(d){
+  return tcBalance(d.principal||0, d.rate||0, d.totalTerm||0, d.curTerm||0);
+}
+
+// Live preview khi nhập modal TC
+window.calcTcFields=function(){
+  const P      =getInputVal('md-principal');
+  const rate   =Number(document.getElementById('md-rate')?.value)||0;
+  const total  =Number(document.getElementById('md-totalterm')?.value)||0;
+  const paid   =Number(document.getElementById('md-curterm')?.value)||0;
+  const preview=document.getElementById('tc-calc-preview');
+  if(!P||!rate||!total){if(preview)preview.style.display='none';return;}
+  const {monthly}=tcCalc(P,rate,total);
+  const remain  =tcBalance(P,rate,total,paid);
+  const r       =rate/100;
+  const interest=Math.round(remain*r);
+  const prinPart=Math.max(0,monthly-interest);
+  if(preview){
+    preview.style.display='block';
+    document.getElementById('tc-calc-monthly').textContent=fmt(monthly);
+    document.getElementById('tc-calc-remain').textContent =fmt(remain);
+    document.getElementById('tc-calc-interest').textContent=fmt(interest);
+    document.getElementById('tc-calc-principal').textContent=fmt(prinPart);
+  }
+};
+// Live preview TD: hiển thị còn lại khi nhập limit/used
+window.calcTdFields=function(){};
+
+// ── FIRESTORE ─────────────────────────────────────────────────
 function userDoc(){return doc(db,'users',uid);}
 
 function startRealtimeSync(){
   if(unsubSnap) unsubSnap();
   unsubSnap = onSnapshot(userDoc(), (snap)=>{
-    if(!snap.exists()) return;
+    if(!snap.exists()){
+      // First login: write defaults
+      debts=clone(DEF_DEBTS); income=clone(DEF_INCOME); expense=clone(DEF_EXPENSE);
+      ticks={}; txns={}; savings=[]; walletBase=0; lastAutoMonth='';
+      saveToFirestore();
+      return;
+    }
     const d=snap.data();
     debts         = d.debts         || clone(DEF_DEBTS);
     income        = d.income        || clone(DEF_INCOME);
@@ -93,67 +159,68 @@ function startRealtimeSync(){
     migrateDebts();
     setSyncBadge('synced','Đã đồng bộ');
     renderAll();
-  }, (e)=>{
-    setSyncBadge('error','Mất kết nối');
-    console.error(e);
-  });
+  }, (e)=>{setSyncBadge('error','Mất kết nối');console.error(e);});
 }
 
 async function saveToFirestore(){
   if(!uid) return;
   setSyncBadge('syncing','Đang lưu…');
-  try {
-    await setDoc(userDoc(),
-      {debts,income,expense,ticks,txns,savings,walletBase,lastAutoMonth},
-      {merge:true}
-    );
+  try{
+    await setDoc(userDoc(),{debts,income,expense,ticks,txns,savings,walletBase,lastAutoMonth},{merge:true});
     setSyncBadge('synced','Đã đồng bộ');
-  } catch(e){
-    setSyncBadge('error','Lỗi lưu');
-    console.error(e);
-  }
+  }catch(e){setSyncBadge('error','Lỗi lưu');console.error(e);}
 }
 
 function setSyncBadge(cls,txt){
   const b=document.getElementById('sync-badge');
-  b.className='sync-badge '+cls;
-  document.getElementById('sync-text').textContent=txt;
+  if(b) b.className='sync-badge '+cls;
+  const t=document.getElementById('sync-text');
+  if(t) t.textContent=txt;
 }
 
-// ── MIGRATE old note="Kỳ X/Y" format ──────────────────────────
+// ── MIGRATE dữ liệu cũ ────────────────────────────────────────
 function migrateDebts(){
   debts.forEach(d=>{
-    if(d.type==='tc'&&d.note&&!d.curTerm){
+    // TC: migrate note "Kỳ X/Y" format cũ
+    if(d.type==='tc'&&d.note&&!d.rate){
       const m=d.note.match(/^Kỳ\s*(\d+)\/(\d+)$/);
       if(m){d.curTerm=parseInt(m[1]);d.totalTerm=parseInt(m[2]);d.note='';}
     }
+    // TC: nếu có debt cũ nhưng chưa có principal, dùng debt làm principal
+    if(d.type==='tc'&&!d.principal&&d.debt){d.principal=d.debt;}
+    // TD: migrate debt -> used nếu chưa có used
+    if(d.type==='td'&&!d.used&&d.debt){d.used=d.debt;d.limit=d.limit||d.debt*2;}
+    // monthly từ trước migrate sang td
+    if(d.type==='td'&&!d.monthly&&d.monthly!==0){d.monthly=d.used||0;}
   });
 }
 
-// ── AUTO-REDUCE DEBTS mỗi tháng ──────────────────────────────
-// Chạy sau khi dữ liệu đã được load, currentMonth đã được init
+// ── AUTO-REDUCE chỉ chạy 1 lần / tháng ───────────────────────
 function autoReduceDebts(){
-  if(!currentMonth || lastAutoMonth===currentMonth) return;
+  if(!currentMonth||lastAutoMonth===currentMonth) return;
   debts.forEach(d=>{
     if(d.settled) return;
-    d.debt=Math.max(0,(Number(d.debt)||0)-(Number(d.monthly)||0));
-    if(d.type==='tc'&&d.totalTerm){
-      d.curTerm=Math.min((d.curTerm||0)+1,d.totalTerm);
-      if(d.curTerm>=d.totalTerm) d.settled=true;
+    if(d.type==='tc'){
+      if(d.totalTerm){
+        d.curTerm=Math.min((d.curTerm||0)+1, d.totalTerm);
+        if(d.curTerm>=d.totalTerm) d.settled=true;
+      }
+    } else {
+      // TD: không auto-reduce vì used thay đổi tùy người dùng
     }
   });
   lastAutoMonth=currentMonth;
   saveToFirestore();
 }
 
-// ── AUTH ───────────────────────────────────────────────────────
+// ── AUTH ──────────────────────────────────────────────────────
 window.signInGoogle=async()=>{
   try{const p=new GoogleAuthProvider();await signInWithPopup(auth,p);}
   catch(e){showToast('⚠️ Đăng nhập thất bại');}
 };
 window.signInAnon=async()=>{
   try{await signInAnonymously(auth);}
-  catch(e){showToast('⚠️ Lỗi');}
+  catch(e){showToast('⚠️ Lỗi kết nối');}
 };
 window.doSignOut=async()=>{
   if(!confirm('Đăng xuất?'))return;
@@ -161,36 +228,25 @@ window.doSignOut=async()=>{
   await signOut(auth);
 };
 
-onAuthStateChanged(auth, async(user)=>{
+onAuthStateChanged(auth,async(user)=>{
   const overlay =document.getElementById('loading-overlay');
   const authPage=document.getElementById('auth-page');
   const bnav    =document.getElementById('bnav');
-
   if(user){
     uid=user.uid;
-    // update account info
     const name =user.displayName||(user.isAnonymous?'Ẩn danh':'Người dùng');
     const email=user.email||(user.isAnonymous?'Không đăng nhập':'—');
-    document.getElementById('acc-name').textContent    =name;
-    document.getElementById('acc-email').textContent   =email;
-    document.getElementById('acc-name-sub').textContent=name;
+    document.getElementById('acc-name').textContent     =name;
+    document.getElementById('acc-email').textContent    =email;
+    document.getElementById('acc-name-sub').textContent =name;
     document.getElementById('acc-email-sub').textContent=email;
-
     authPage.classList.remove('active');
     bnav.style.display='flex';
-
-    // init month BEFORE realtime sync triggers autoReduce
     initMonth();
-
-    // set initial loading badge, then start realtime
     setSyncBadge('syncing','Đang đồng bộ…');
     startRealtimeSync();
-
-    // after first snapshot fires, autoReduceDebts is called in renderAll
     overlay.classList.add('hidden');
     setTimeout(()=>overlay.style.display='none',500);
-
-    // show home
     switchPage('home');
   } else {
     uid=null;
@@ -203,9 +259,27 @@ onAuthStateChanged(auth, async(user)=>{
   }
 });
 
-// ── RENDER ALL ─────────────────────────────────────────────────
+// ── THEME ─────────────────────────────────────────────────────
+window.setTheme=function(t){
+  currentTheme=t;
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('vn_theme',t);
+  // update picker UI
+  ['dark','light','amoled'].forEach(th=>{
+    document.getElementById('tp-'+th)?.classList.toggle('active',th===t);
+  });
+  const names={dark:'Dark 🌑',light:'Light ☀️',amoled:'AMOLED ⚫'};
+  const sub=document.getElementById('theme-sub');
+  if(sub) sub.textContent=names[t]||t;
+};
+function initTheme(){
+  const saved=localStorage.getItem('vn_theme')||'dark';
+  setTheme(saved);
+}
+
+// ── RENDER ALL ────────────────────────────────────────────────
 function renderAll(){
-  autoReduceDebts(); // safe: only runs once per month
+  autoReduceDebts();
   renderHome();
   renderPaid();
   renderTxnPage();
@@ -213,74 +287,74 @@ function renderAll(){
   renderTools();
 }
 
-// ── HOME ───────────────────────────────────────────────────────
+// ── HOME ──────────────────────────────────────────────────────
 function renderHome(){
   const n=new Date();
-  document.getElementById('sub-date').textContent=
-    n.toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'numeric'});
-  document.getElementById('month-label').textContent=getML(currentMonth);
+  const sd=document.getElementById('sub-date');
+  if(sd) sd.textContent=n.toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'numeric'});
+  const ml=document.getElementById('month-label');
+  if(ml) ml.textContent=getML(currentMonth);
 
   const totalIncome =income.reduce((s,x)=>s+Number(x.amount),0);
   const totalExpense=expense.reduce((s,x)=>s+Number(x.amount),0);
-  const totalDebtPay=debts.filter(d=>!d.settled).reduce((s,d)=>s+Number(d.monthly),0);
+
+  // monthly từ debts: TC dùng công thức, TD dùng field monthly
+  const totalDebtPay=debts.filter(d=>!d.settled).reduce((s,d)=>{
+    return s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0));
+  },0);
 
   const monthTxns=txns[currentMonth]||[];
-  const txnIn =monthTxns.filter(t=>t.type==='in') .reduce((s,t)=>s+Number(t.amount),0);
+  const txnIn =monthTxns.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount),0);
   const txnOut=monthTxns.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
-
   const totalIn =totalIncome+txnIn;
   const totalOut=totalExpense+txnOut;
   const remain  =totalIn-totalOut-totalDebtPay;
-  const totalDebtLeft=debts.filter(d=>!d.settled).reduce((s,d)=>s+Number(d.debt),0);
+  const totalDebtLeft=debts.filter(d=>!d.settled).reduce((s,d)=>{
+    return s+(d.type==='tc'?tcGetDebt(d):Number(d.used||0));
+  },0);
 
-  document.getElementById('kpi-income').textContent    =fmt(totalIn);
-  document.getElementById('kpi-expense').textContent   =fmt(totalOut);
-  document.getElementById('kpi-debt-pay').textContent  =fmt(totalDebtPay);
-  document.getElementById('kpi-remain').textContent    =remain>=0?fmt(remain):'-'+fmt(Math.abs(remain));
-  document.getElementById('kpi-remain').style.color    =remain>=0?'var(--purple)':'var(--red)';
-  document.getElementById('kpi-debt-total').textContent=fmt(totalDebtLeft);
+  const el=id=>document.getElementById(id);
+  if(el('kpi-income'))   el('kpi-income').textContent=fmt(totalIn);
+  if(el('kpi-expense'))  el('kpi-expense').textContent=fmt(totalOut);
+  if(el('kpi-debt-pay')) el('kpi-debt-pay').textContent=fmt(totalDebtPay);
+  if(el('kpi-remain')){  el('kpi-remain').textContent=remain>=0?fmt(remain):'-'+fmt(Math.abs(remain));
+                         el('kpi-remain').style.color=remain>=0?'var(--purple)':'var(--red)';}
+  if(el('kpi-debt-total')) el('kpi-debt-total').textContent=fmt(totalDebtLeft);
+  const wallet=walletBase+txnIn-txnOut;
+  if(el('kpi-wallet')){el('kpi-wallet').textContent=fmt(wallet);el('kpi-wallet').style.color=wallet>=0?'var(--blue)':'var(--red)';}
 
-  // Tiền trong túi = thu nhập - chi cố định - trả nợ - chi đột xuất + thu đột xuất + điều chỉnh
-  const monthTxnsAll=txns[currentMonth]||[];
-  const txnInHome =monthTxnsAll.filter(t=>t.type==='in') .reduce((s,t)=>s+Number(t.amount),0);
-  const txnOutHome=monthTxns.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
-  const wallet = totalIncome - totalExpense - totalDebtPay + txnInHome - txnOutHome + (walletBase||0);
-  const wEl=document.getElementById('kpi-wallet');
-  if(wEl){ wEl.textContent=fmt(wallet); wEl.style.color=wallet>=0?'var(--blue)':'var(--red)'; }
-
-  // ratio bar
   if(totalIn>0){
     const ep=Math.min(totalOut/totalIn*100,100);
     const dp=Math.min(totalDebtPay/totalIn*100,Math.max(0,100-ep));
     const rp=Math.max(100-ep-dp,0);
-    document.getElementById('rb-expense').style.width=ep+'%';
-    document.getElementById('rb-debt').style.width   =dp+'%';
-    document.getElementById('rb-remain').style.width =rp+'%';
+    if(el('rb-expense')) el('rb-expense').style.width=ep+'%';
+    if(el('rb-debt'))    el('rb-debt').style.width=dp+'%';
+    if(el('rb-remain'))  el('rb-remain').style.width=rp+'%';
   }
 
-  // progress
   const ms=ticks[currentMonth]||{};
-  const paidAmt=debts.filter(d=>!d.settled&&ms[d.id]).reduce((s,d)=>s+Number(d.monthly),0);
+  const paidAmt=debts.filter(d=>!d.settled&&ms[d.id]).reduce((s,d)=>s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)),0);
   const pct=totalDebtPay?Math.round(paidAmt/totalDebtPay*100):0;
-  document.getElementById('prog-fill').style.width=pct+'%';
-  document.getElementById('prog-pct').textContent =pct+'%';
+  if(el('prog-fill')) el('prog-fill').style.width=pct+'%';
+  if(el('prog-pct'))  el('prog-pct').textContent=pct+'%';
 }
 
-// ── PAID (Đã thanh toán) ───────────────────────────────────────
+// ── PAID ──────────────────────────────────────────────────────
 function renderPaid(){
-  document.getElementById('paid-month-label').textContent=getML(currentMonth);
-  document.getElementById('paid-subtitle').textContent=getML(currentMonth);
+  const pml=document.getElementById('paid-month-label');
+  if(pml) pml.textContent=getML(currentMonth);
+  const ps=document.getElementById('paid-subtitle');
+  if(ps) ps.textContent=getML(currentMonth);
 
   const ms=ticks[currentMonth]||{};
   const activeDebts=debts.filter(d=>!d.settled);
-  const totalPay   =activeDebts.reduce((s,d)=>s+Number(d.monthly),0);
-  const paidAmt    =activeDebts.filter(d=>ms[d.id]).reduce((s,d)=>s+Number(d.monthly),0);
-  const unpaidAmt  =totalPay-paidAmt;
+  const totalPay=activeDebts.reduce((s,d)=>s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)),0);
+  const paidAmt =activeDebts.filter(d=>ms[d.id]).reduce((s,d)=>s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)),0);
 
-  document.getElementById('ps-total-debt').textContent=fmt(totalPay);
-  document.getElementById('ps-paid').textContent      =fmt(paidAmt);
-  document.getElementById('ps-unpaid').textContent    =fmt(unpaidAmt);
-
+  const el=id=>document.getElementById(id);
+  if(el('ps-total-debt')) el('ps-total-debt').textContent=fmt(totalPay);
+  if(el('ps-paid'))       el('ps-paid').textContent=fmt(paidAmt);
+  if(el('ps-unpaid'))     el('ps-unpaid').textContent=fmt(totalPay-paidAmt);
   renderCards();
 }
 
@@ -293,7 +367,6 @@ function renderCards(){
   if(currentFilter==='td')     show=debts.filter(d=>d.type==='td');
   if(currentFilter==='tc')     show=debts.filter(d=>d.type==='tc');
   if(currentFilter==='unpaid') show=debts.filter(d=>!ms[d.id]&&!d.settled);
-
   const td=show.filter(d=>d.type==='td');
   const tc=show.filter(d=>d.type==='tc');
   if(!show.length){list.innerHTML=`<div class="empty">✅ Tháng này xong rồi!</div>`;return;}
@@ -307,17 +380,62 @@ function addSec(list,txt){
   const w=document.createElement('div');w.className='cards';list.appendChild(w);
 }
 function lastWrap(list){const ws=list.querySelectorAll('.cards');return ws[ws.length-1];}
+
 function debtMeta(d){
-  if(d.type==='tc'&&d.totalTerm) return `Kỳ ${d.curTerm||0}/${d.totalTerm}${d.payDay?` · Ngày ${d.payDay}`:''}`;
-  return (d.note||'')+(d.payDay?` · Ngày ${d.payDay}`:'');
+  if(d.type==='tc'){
+    const kStr=d.totalTerm?`Kỳ ${d.curTerm||0}/${d.totalTerm} · `:'';
+    return `${kStr}Ngày ${d.payDay||'—'}`;
+  }
+  return `${d.note||''} · Ngày ${d.payDay||'—'}`;
 }
 
 function addCard(wrap,d,ms){
   const paid=!!ms[d.id], settled=!!d.settled;
+  const monthly=d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0);
+  const debt   =d.type==='tc'?tcGetDebt(d)   :Number(d.used||0);
+  const pct    =d.type==='tc'&&d.totalTerm?Math.round((d.curTerm||0)/d.totalTerm*100):null;
+
   const div=document.createElement('div');
   div.className='dcard'+(paid?' paid':'')+(settled?' settled':'');
   div.id='dc-'+d.id;
-  const pct=d.type==='tc'&&d.totalTerm?Math.round((d.curTerm||0)/d.totalTerm*100):null;
+
+  // Build detail rows differently per type
+  let detailHTML='';
+  if(d.type==='td'){
+    const limit      =Number(d.limit||0);
+    const used       =Number(d.used||0);
+    const avail      =Math.max(0,limit-used);
+    const usedPct    =limit?Math.round(used/limit*100):0;
+    const barColor   =usedPct>80?'var(--red)':usedPct>50?'var(--orange)':'var(--accent)';
+    const settleFee  =Number(d.settleFee||0);
+    detailHTML=`
+      <div class="dd-inner">
+        <div class="dd-i"><label>Hạn mức</label><p>${fmt(limit)}</p></div>
+        <div class="dd-i"><label>Đã dùng</label><p style="color:var(--orange)">${fmt(used)}</p></div>
+        <div class="dd-i"><label>Còn lại</label><p style="color:var(--accent)">${fmt(avail)}</p></div>
+        <div class="dd-i"><label>Trả TT sớm</label><p>${settleFee?fmt(settleFee):'—'}</p></div>
+        <div class="dd-i"><label>Trạng thái</label><p id="ds-${d.id}" style="color:${paid?'var(--accent)':'var(--orange)'}">${paid?'Đã TT ✓':'Chờ TT'}</p></div>
+      </div>
+      <div class="credit-bar-wrap">
+        <div class="credit-bar-labels"><span>0%</span><span>${usedPct}% đã dùng</span><span>100%</span></div>
+        <div class="credit-bar-track"><div class="credit-bar-fill" style="width:${usedPct}%;background:${barColor}"></div></div>
+      </div>`;
+  } else {
+    const balance=tcGetDebt(d);
+    const r=Number(d.rate||0)/100;
+    const interestThisMonth=Math.round(balance*r);
+    const principalThisMonth=Math.max(0,monthly-interestThisMonth);
+    detailHTML=`
+      <div class="dd-inner">
+        <div class="dd-i"><label>Dư nợ còn lại</label><p>${fmt(balance)}</p></div>
+        <div class="dd-i"><label>Kỳ</label><p>${pct!==null?`${d.curTerm||0}/${d.totalTerm} (${pct}%)`:'—'}</p></div>
+        <div class="dd-i"><label>Lãi tháng này</label><p style="color:var(--orange)">${fmt(interestThisMonth)}</p></div>
+        <div class="dd-i"><label>Gốc tháng này</label><p style="color:var(--green)">${fmt(principalThisMonth)}</p></div>
+        <div class="dd-i"><label>Nợ gốc</label><p>${fmt(d.principal||0)}</p></div>
+        <div class="dd-i"><label>Trạng thái</label><p id="ds-${d.id}" style="color:${settled?'var(--accent)':paid?'var(--accent)':'var(--orange)'}">${settled?'Tất toán ✓':paid?'Đã TT ✓':'Chờ TT'}</p></div>
+      </div>`;
+  }
+
   div.innerHTML=`
     <div class="dcard-top" onclick="tapTop('${d.id}')">
       <div class="d-dot ${paid?'ok':d.type}"></div>
@@ -326,40 +444,29 @@ function addCard(wrap,d,ms){
         <div class="d-meta">${debtMeta(d)}</div>
       </div>
       <div class="d-right">
-        <div class="d-amt ${d.type}">${fmt(d.monthly)}đ</div>
+        <div class="d-amt ${d.type}">${fmt(monthly)}</div>
         <div class="d-unit">/ tháng</div>
       </div>
       <button class="chk${paid?' checked':''}" id="cb-${d.id}"
         onclick="event.stopPropagation();tapCheck('${d.id}')">✓</button>
     </div>
-    <div class="dcard-detail" id="dd-${d.id}">
-      <div class="dd-inner">
-        <div class="dd-i"><label>Dư nợ</label><p>${fmt(d.debt)}đ</p></div>
-        <div class="dd-i"><label>${d.type==='tc'?'Kỳ':'Trả/th'}</label>
-          <p>${d.type==='tc'&&d.totalTerm?`${d.curTerm||0}/${d.totalTerm}${pct!==null?' ('+pct+'%)':''}`:fmt(d.monthly)+'đ'}</p></div>
-        <div class="dd-i"><label>Trạng thái</label>
-          <p id="ds-${d.id}" style="color:${settled?'var(--accent)':paid?'var(--accent)':'var(--orange)'}">
-            ${settled?'Tất toán ✓':paid?'Đã TT ✓':'Chờ TT'}</p>
-        </div>
-      </div>
-    </div>`;
+    <div class="dcard-detail" id="dd-${d.id}">${detailHTML}</div>`;
   wrap.appendChild(div);
 }
 
 window.tapTop=function(id){
-  const el=document.getElementById('dd-'+id);
-  if(openDetail&&openDetail!==id){
-    const p=document.getElementById('dd-'+openDetail);if(p)p.classList.remove('open');
-  }
+  const el=document.getElementById('dd-'+id);if(!el)return;
+  if(openDetail&&openDetail!==id){const p=document.getElementById('dd-'+openDetail);if(p)p.classList.remove('open');}
   if(openDetail===id){el.classList.remove('open');openDetail=null;}
   else{el.classList.add('open');openDetail=id;}
 };
 
 window.tapCheck=async function(id){
-  if(!ticks[currentMonth])ticks[currentMonth]={};
+  if(!ticks[currentMonth]) ticks[currentMonth]={};
   ticks[currentMonth][id]=!ticks[currentMonth][id];
   const paid=ticks[currentMonth][id];
   const d=debts.find(x=>x.id===id);
+  const monthly=d?(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)):0;
 
   const cb=document.getElementById('cb-'+id);
   const dc=document.getElementById('dc-'+id);
@@ -370,22 +477,15 @@ window.tapCheck=async function(id){
   if(ds){ds.style.color=paid?'var(--accent)':'var(--orange)';ds.textContent=paid?'Đã TT ✓':'Chờ TT';}
   if(dot) dot.className='d-dot '+(paid?'ok':d?.type||'');
   setTimeout(()=>{const b=document.getElementById('cb-'+id);if(b)b.classList.remove('pop');},250);
-
   showToast(paid?`✓ ${d?.name} đã thanh toán`:`↩ ${d?.name} bỏ tick`);
 
-  // update progress bar inline
-  const totalPay=debts.filter(x=>!x.settled).reduce((s,x)=>s+Number(x.monthly),0);
-  const paidAmt =debts.filter(x=>!x.settled&&ticks[currentMonth]?.[x.id]).reduce((s,x)=>s+Number(x.monthly),0);
+  const totalPay=debts.filter(x=>!x.settled).reduce((s,x)=>s+(x.type==='tc'?tcGetMonthly(x):Number(x.monthly||0)),0);
+  const paidAmt =debts.filter(x=>!x.settled&&ticks[currentMonth]?.[x.id]).reduce((s,x)=>s+(x.type==='tc'?tcGetMonthly(x):Number(x.monthly||0)),0);
   const pct=totalPay?Math.round(paidAmt/totalPay*100):0;
-  const pf=document.getElementById('prog-fill');
-  const pp=document.getElementById('prog-pct');
-  if(pf) pf.style.width=pct+'%';
-  if(pp) pp.textContent=pct+'%';
-  // update paid summary
-  const ppaid=document.getElementById('ps-paid');
-  const punpaid=document.getElementById('ps-unpaid');
-  if(ppaid) ppaid.textContent=fmt(paidAmt);
-  if(punpaid) punpaid.textContent=fmt(totalPay-paidAmt);
+  const pf=document.getElementById('prog-fill');const pp=document.getElementById('prog-pct');
+  if(pf) pf.style.width=pct+'%'; if(pp) pp.textContent=pct+'%';
+  const ep=document.getElementById('ps-paid');const eu=document.getElementById('ps-unpaid');
+  if(ep) ep.textContent=fmt(paidAmt); if(eu) eu.textContent=fmt(totalPay-paidAmt);
 
   if(currentFilter==='unpaid') setTimeout(()=>{openDetail=null;renderCards();},500);
   await saveToFirestore();
@@ -397,412 +497,348 @@ window.filterTab=function(f,el){
   el.classList.add('active');renderCards();
 };
 
-// ── TXN PAGE ───────────────────────────────────────────────────
+// ── TXN PAGE ──────────────────────────────────────────────────
 function renderTxnPage(){
-  const tsl=document.getElementById('txn-subtitle');
-  if(tsl) tsl.textContent=getML(currentMonth);
-  const tml=document.getElementById('txn-month-label');
-  if(tml) tml.textContent=getML(currentMonth);
-
+  const el=id=>document.getElementById(id);
+  if(el('txn-subtitle'))    el('txn-subtitle').textContent=getML(currentMonth);
+  if(el('txn-month-label')) el('txn-month-label').textContent=getML(currentMonth);
   const monthTxns=txns[currentMonth]||[];
-  const txnIn =monthTxns.filter(t=>t.type==='in') .reduce((s,t)=>s+Number(t.amount),0);
+  const txnIn =monthTxns.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount),0);
   const txnOut=monthTxns.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
-
-  document.getElementById('txn-kpi-in').textContent =fmt(txnIn);
-  document.getElementById('txn-kpi-out').textContent=fmt(txnOut);
-
-  const wi=document.getElementById('wallet-base-input');
-  if(wi) wi.value=walletBase||'';
-
-  // txn list
-  const list=document.getElementById('txn-list');
-  list.innerHTML='';
-  if(!monthTxns.length){
-    list.innerHTML=`<div class="empty" style="padding:24px 0">Chưa có giao dịch nào</div>`;
-  } else {
-    [...monthTxns].reverse().forEach(t=>{
-      const row=document.createElement('div');row.className='txn-row';
-      row.onclick=()=>openTxnEdit(t.id);
-      row.innerHTML=`
-        <div class="txn-dot ${t.type}"></div>
-        <div class="txn-name">${t.name}</div>
-        <div class="txn-amt ${t.type}">${t.type==='in'?'+':'-'}${fmt(t.amount)}</div>`;
-      list.appendChild(row);
-    });
+  if(el('txn-kpi-in'))  el('txn-kpi-in').textContent=fmt(txnIn);
+  if(el('txn-kpi-out')) el('txn-kpi-out').textContent=fmt(txnOut);
+  const wi=el('wallet-base-input');
+  if(wi){wi.value=walletBase?fmtNoUnit(walletBase):'';wi.dataset.raw=walletBase;}
+  const list=el('txn-list');
+  if(list){
+    list.innerHTML='';
+    if(!monthTxns.length){
+      list.innerHTML=`<div class="empty" style="padding:24px 0">Chưa có giao dịch nào</div>`;
+    } else {
+      [...monthTxns].reverse().forEach(t=>{
+        const row=document.createElement('div');row.className='txn-row';
+        row.onclick=()=>openTxnEdit(t.id);
+        row.innerHTML=`<div class="txn-dot ${t.type}"></div><div class="txn-name">${t.name}</div>
+          <div class="txn-amt ${t.type}">${t.type==='in'?'+':'-'}${fmt(t.amount)}</div>`;
+        list.appendChild(row);
+      });
+    }
   }
-
-  // saving
   renderSavingList();
 }
 
-// ── TXN MODAL ──────────────────────────────────────────────────
 window.openTxnModal=function(){
   editTxnId=null;
   document.getElementById('txn-name').value='';
-  document.getElementById('txn-amount').value='';
+  const ta=document.getElementById('txn-amount');ta.value='';ta.dataset.raw='';
   document.getElementById('txn-del').style.display='none';
   setTxnType('out');
   document.getElementById('modal-txn').classList.add('open');
   setTimeout(()=>document.getElementById('txn-amount').focus(),350);
 };
-
 function openTxnEdit(id){
   const t=(txns[currentMonth]||[]).find(x=>x.id===id);if(!t)return;
   editTxnId=id;
   document.getElementById('txn-name').value=t.name;
-  document.getElementById('txn-amount').value=t.amount;
+  setInputFmt('txn-amount',t.amount);
   document.getElementById('txn-del').style.display='block';
   setTxnType(t.type);
   document.getElementById('modal-txn').classList.add('open');
 }
-
 window.setTxnType=function(t){
   txnType=t;
   document.getElementById('tt-in') .className='tt-btn'+(t==='in'?' active-in':'');
   document.getElementById('tt-out').className='tt-btn'+(t==='out'?' active-out':'');
   renderChips();
 };
-
 function renderChips(){
   const list=txnType==='in'?SUGGEST_IN:SUGGEST_OUT;
-  const wrap=document.getElementById('txn-chips');
-  wrap.innerHTML='';
+  const wrap=document.getElementById('txn-chips');wrap.innerHTML='';
   list.forEach(s=>{
     const c=document.createElement('div');c.className='chip';c.textContent=s;
     c.onclick=()=>{
       document.getElementById('txn-name').value=s==='Khác'?'':s;
-      wrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
-      c.classList.add('sel');
+      wrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');
       if(s!=='Khác') document.getElementById('txn-amount').focus();
       else document.getElementById('txn-name').focus();
     };
     wrap.appendChild(c);
   });
 }
-
 window.saveTxn=async function(){
   const name  =document.getElementById('txn-name').value.trim()||'Không tên';
-  const amount=Number(document.getElementById('txn-amount').value)||0;
+  const amount=getInputVal('txn-amount');
   if(!amount){showToast('⚠️ Nhập số tiền');return;}
   if(!txns[currentMonth]) txns[currentMonth]=[];
-  if(editTxnId){
-    const t=txns[currentMonth].find(x=>x.id===editTxnId);
-    if(t){t.name=name;t.amount=amount;t.type=txnType;}
-  } else {
-    txns[currentMonth].push({id:'t'+Date.now(),name,amount,type:txnType});
-  }
-  await saveToFirestore();
-  closeModal('modal-txn');renderTxnPage();renderHome();
+  if(editTxnId){const t=txns[currentMonth].find(x=>x.id===editTxnId);if(t){t.name=name;t.amount=amount;t.type=txnType;}}
+  else txns[currentMonth].push({id:'t'+Date.now(),name,amount,type:txnType});
+  await saveToFirestore();closeModal('modal-txn');renderTxnPage();renderHome();
   showToast(txnType==='in'?`✓ +${fmt(amount)} Thu`:`✓ -${fmt(amount)} Chi`);
 };
-
 window.deleteTxn=async function(){
   if(!editTxnId||!confirm('Xoá?'))return;
   txns[currentMonth]=(txns[currentMonth]||[]).filter(x=>x.id!==editTxnId);
   await saveToFirestore();closeModal('modal-txn');renderTxnPage();renderHome();showToast('🗑 Đã xoá');
 };
 
-// ── WALLET / SAVING ────────────────────────────────────────────
+// ── WALLET / SAVING ───────────────────────────────────────────
 window.saveWalletBase=async function(){
-  const v=Number(document.getElementById('wallet-base-input').value)||0;
-  walletBase=v;await saveToFirestore();renderTxnPage();renderHome();showToast('✓ Đã lưu số dư');
+  walletBase=getInputVal('wallet-base-input');
+  await saveToFirestore();renderTxnPage();renderHome();showToast('✓ Đã lưu số dư');
 };
-
 window.openSavingModal=function(){
   document.getElementById('sv-name').value='';
-  document.getElementById('sv-amount').value='';
+  const sa=document.getElementById('sv-amount');sa.value='';sa.dataset.raw='';
   document.getElementById('modal-saving').classList.add('open');
   setTimeout(()=>document.getElementById('sv-amount').focus(),350);
 };
-
 window.saveSaving=async function(){
   const name  =document.getElementById('sv-name').value.trim()||'Tiết kiệm';
-  const amount=Number(document.getElementById('sv-amount').value)||0;
+  const amount=getInputVal('sv-amount');
   if(!amount){showToast('⚠️ Nhập số tiền');return;}
   const date=new Date().toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
   savings.push({id:'sv'+Date.now(),name,amount,date});
-  await saveToFirestore();closeModal('modal-saving');renderTxnPage();
-  showToast(`✓ Tiết kiệm +${fmt(amount)}`);
+  await saveToFirestore();closeModal('modal-saving');renderTxnPage();showToast(`✓ +${fmt(amount)}`);
 };
-
 window.deleteSaving=async function(id){
-  if(!confirm('Xoá khoản tiết kiệm này?'))return;
+  if(!confirm('Xoá?'))return;
   savings=savings.filter(x=>x.id!==id);
   await saveToFirestore();renderTxnPage();showToast('🗑 Đã xoá');
 };
-
 function renderSavingList(){
-  const el=document.getElementById('saving-hist');
-  if(!el) return;
+  const el=document.getElementById('saving-hist');if(!el)return;
   el.innerHTML='';
-  if(!savings.length){
-    el.innerHTML=`<div style="padding:14px;text-align:center;color:var(--sub);font-size:12px;font-weight:700">Chưa có khoản nào</div>`;
-  } else {
-    [...savings].reverse().forEach(s=>{
-      const row=document.createElement('div');row.className='save-row';
-      row.innerHTML=`
-        <div class="save-row-left">
-          <div class="save-row-name">${s.name||'Tiết kiệm'}</div>
-          <div class="save-row-date">${s.date||''}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="save-row-amt">+${fmt(s.amount)}</div>
-          <button class="s-del" onclick="deleteSaving('${s.id}')">✕</button>
-        </div>`;
-      el.appendChild(row);
-    });
-  }
+  if(!savings.length){el.innerHTML=`<div style="padding:14px;text-align:center;color:var(--sub);font-size:12px;font-weight:700">Chưa có</div>`;return;}
+  [...savings].reverse().forEach(s=>{
+    const row=document.createElement('div');row.className='save-row';
+    row.innerHTML=`<div class="save-row-left"><div class="save-row-name">${s.name}</div><div class="save-row-date">${s.date||''}</div></div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="save-row-amt">+${fmt(s.amount)}</div>
+      <button class="s-del" onclick="deleteSaving('${s.id}')">✕</button></div>`;
+    el.appendChild(row);
+  });
   const total=savings.reduce((s,x)=>s+Number(x.amount),0);
-  const st=document.getElementById('saving-total');
-  if(st) st.textContent=fmt(total);
+  const st=document.getElementById('saving-total');if(st) st.textContent=fmt(total);
 }
 
-// ── TOOLS ──────────────────────────────────────────────────────
-function renderTools(){
-  renderSchedule();
-  renderAnalyze();
-}
-
+// ── TOOLS ─────────────────────────────────────────────────────
+function renderTools(){renderSchedule();renderAnalyze();}
 window.toggleTool=function(id){
-  const body =document.getElementById('body-'+id);
-  const arrow=document.getElementById('arr-'+id);
-  if(!body) return;
+  const body=document.getElementById('body-'+id);const arrow=document.getElementById('arr-'+id);if(!body)return;
   const isOpen=body.classList.contains('open');
-  // close all
   document.querySelectorAll('.tool-body').forEach(b=>b.classList.remove('open'));
   document.querySelectorAll('.tool-arrow').forEach(a=>a.classList.remove('open'));
   if(!isOpen){body.classList.add('open');arrow.classList.add('open');}
 };
-
 window.calcInterest=function(){
-  const P=Number(document.getElementById('ti-principal').value)||0;
-  const r=Number(document.getElementById('ti-rate').value)/100||0;
+  const P=getInputVal('ti-principal');const r=Number(document.getElementById('ti-rate').value)/100||0;
   const n=Number(document.getElementById('ti-terms').value)||0;
   const res=document.getElementById('ti-result');
   if(!P||!r||!n){showToast('⚠️ Nhập đủ thông tin');return;}
-  // PMT formula
-  const monthly=r>0?P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1):P/n;
-  const total=monthly*n;
-  const interest=total-P;
+  const monthly=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  const total=monthly*n;const interest=total-P;
   res.className='tool-result show';
-  res.innerHTML=`
-    <div class="tr-row"><span class="tr-label">Trả mỗi tháng</span><span class="tr-val" style="color:var(--accent)">${fmt(monthly)}</span></div>
-    <div class="tr-row"><span class="tr-label">Tổng trả ${n} tháng</span><span class="tr-val">${fmt(total)}</span></div>
+  res.innerHTML=`<div class="tr-row"><span class="tr-label">Trả mỗi tháng</span><span class="tr-val" style="color:var(--accent)">${fmt(monthly)}</span></div>
+    <div class="tr-row"><span class="tr-label">Tổng trả ${n} kỳ</span><span class="tr-val">${fmt(total)}</span></div>
     <div class="tr-row"><span class="tr-label">Tổng tiền lãi</span><span class="tr-val" style="color:var(--red)">${fmt(interest)}</span></div>
     <div class="tr-row"><span class="tr-label">Vốn gốc</span><span class="tr-val">${fmt(P)}</span></div>`;
 };
-
 window.calcSaving=function(){
-  const goal  =Number(document.getElementById('sc-goal').value)||0;
-  const rYear =Number(document.getElementById('sc-rate').value)/100||0;
+  const goal=getInputVal('sc-goal');const rYear=Number(document.getElementById('sc-rate').value)/100||0;
   const months=Number(document.getElementById('sc-months').value)||0;
-  const res   =document.getElementById('sc-result');
+  const res=document.getElementById('sc-result');
   if(!goal||!months){showToast('⚠️ Nhập đủ thông tin');return;}
   const r=rYear/12;
-  // FV = PMT * ((1+r)^n - 1) / r  =>  PMT = FV * r / ((1+r)^n - 1)
   const monthly=r>0?goal*r/(Math.pow(1+r,months)-1):goal/months;
-  const totalDeposit=monthly*months;
-  const interest=goal-totalDeposit;
+  const totalDeposit=monthly*months;const interest=goal-totalDeposit;
   res.className='tool-result show';
-  res.innerHTML=`
-    <div class="tr-row"><span class="tr-label">Cần gửi mỗi tháng</span><span class="tr-val" style="color:var(--green)">${fmt(monthly)}</span></div>
+  res.innerHTML=`<div class="tr-row"><span class="tr-label">Cần gửi mỗi tháng</span><span class="tr-val" style="color:var(--green)">${fmt(monthly)}</span></div>
     <div class="tr-row"><span class="tr-label">Tổng tiền gốc</span><span class="tr-val">${fmt(totalDeposit)}</span></div>
     <div class="tr-row"><span class="tr-label">Lãi kép tích lũy</span><span class="tr-val" style="color:var(--accent)">${fmt(interest)}</span></div>
-    <div class="tr-row"><span class="tr-label">Mục tiêu đạt được</span><span class="tr-val" style="color:var(--green)">${fmt(goal)}</span></div>`;
+    <div class="tr-row"><span class="tr-label">Mục tiêu</span><span class="tr-val" style="color:var(--green)">${fmt(goal)}</span></div>`;
 };
-
 function renderSchedule(){
-  const el=document.getElementById('schedule-list');
-  if(!el) return;
-  el.innerHTML='';
+  const el=document.getElementById('schedule-list');if(!el)return;el.innerHTML='';
   const today=new Date().getDate();
-  const activeDebts=debts.filter(d=>!d.settled&&d.payDay);
-  if(!activeDebts.length){
-    el.innerHTML=`<div style="color:var(--sub);font-size:12px;font-weight:700;text-align:center;padding:16px 0">Chưa có ngày thanh toán nào được thiết lập</div>`;
-    return;
-  }
-  const sorted=[...activeDebts].sort((a,b)=>(a.payDay||0)-(b.payDay||0));
-  sorted.forEach(d=>{
+  const active=debts.filter(d=>!d.settled&&d.payDay);
+  if(!active.length){el.innerHTML=`<div style="color:var(--sub);font-size:12px;font-weight:700;text-align:center;padding:16px 0">Chưa có ngày thanh toán</div>`;return;}
+  [...active].sort((a,b)=>(a.payDay||0)-(b.payDay||0)).forEach(d=>{
     const row=document.createElement('div');row.className='sched-row';
-    const isToday=d.payDay===today;
-    const isOverdue=d.payDay<today;
-    row.innerHTML=`
-      <div class="sched-day${isToday?' today':isOverdue?' overdue':''}">${d.payDay}</div>
-      <div>
-        <div class="sched-name">${d.name}</div>
-        <div style="font-size:10px;font-weight:600;color:var(--sub)">${isToday?'🔴 Hôm nay':isOverdue?'Đã qua':'Sắp tới'}</div>
-      </div>
-      <div class="sched-amt">${fmt(d.monthly)}đ</div>`;
+    const isToday=d.payDay===today,isOverdue=d.payDay<today;
+    const monthly=d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0);
+    row.innerHTML=`<div class="sched-day${isToday?' today':isOverdue?' overdue':''}">${d.payDay}</div>
+      <div><div class="sched-name">${d.name}</div>
+      <div style="font-size:10px;font-weight:600;color:var(--sub)">${isToday?'🔴 Hôm nay':isOverdue?'Đã qua':'Sắp tới'}</div></div>
+      <div class="sched-amt">${fmt(monthly)}</div>`;
     el.appendChild(row);
   });
 }
-
 function renderAnalyze(){
-  const el=document.getElementById('analyze-content');
-  if(!el) return;
-  const totalIncome=income.reduce((s,x)=>s+Number(x.amount),0);
-  const totalDebtPay=debts.filter(d=>!d.settled).reduce((s,d)=>s+Number(d.monthly),0);
-  const totalExpense=expense.reduce((s,x)=>s+Number(x.amount),0);
-  const totalDebtLeft=debts.filter(d=>!d.settled).reduce((s,d)=>s+Number(d.debt),0);
-
-  const debtRatio=totalIncome>0?Math.round(totalDebtPay/totalIncome*100):0;
+  const el=document.getElementById('analyze-content');if(!el)return;
+  const totalIncome  =income.reduce((s,x)=>s+Number(x.amount),0);
+  const totalDebtPay =debts.filter(d=>!d.settled).reduce((s,d)=>s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)),0);
+  const totalExpense =expense.reduce((s,x)=>s+Number(x.amount),0);
+  const totalDebtLeft=debts.filter(d=>!d.settled).reduce((s,d)=>s+(d.type==='tc'?tcGetDebt(d):Number(d.used||0)),0);
+  const debtRatio   =totalIncome>0?Math.round(totalDebtPay/totalIncome*100):0;
   const expenseRatio=totalIncome>0?Math.round(totalExpense/totalIncome*100):0;
-  const remainRatio=Math.max(0,100-debtRatio-expenseRatio);
-
-  // Health score: 100 - penalties
+  const remainRatio =Math.max(0,100-debtRatio-expenseRatio);
   let score=100;
-  if(debtRatio>50) score-=30;
-  else if(debtRatio>35) score-=15;
-  else if(debtRatio>20) score-=5;
-  if(expenseRatio>60) score-=20;
-  else if(expenseRatio>45) score-=10;
+  if(debtRatio>50)score-=30;else if(debtRatio>35)score-=15;else if(debtRatio>20)score-=5;
+  if(expenseRatio>60)score-=20;else if(expenseRatio>45)score-=10;
   const scoreColor=score>=80?'var(--accent)':score>=60?'var(--orange)':'var(--red)';
   const scoreLabel=score>=80?'Tốt 🟢':score>=60?'Cần cải thiện 🟡':'Rủi ro cao 🔴';
-
-  // Estimate payoff
-  let earliestPayoff=null;
-  const ms=ticks[currentMonth]||{};
-  debts.filter(d=>!d.settled&&d.type==='tc'&&d.totalTerm).forEach(d=>{
-    const remaining=d.totalTerm-(d.curTerm||0);
-    const n=new Date();
-    n.setMonth(n.getMonth()+remaining);
-    const label=`${d.name}: ${n.toLocaleDateString('vi-VN',{month:'numeric',year:'numeric'})}`;
-    if(!earliestPayoff) earliestPayoff=label;
+  let payoffItems='';
+  debts.filter(d=>!d.settled&&d.type==='tc'&&d.totalTerm).sort((a,b)=>(a.totalTerm-(a.curTerm||0))-(b.totalTerm-(b.curTerm||0))).slice(0,3).forEach(d=>{
+    const rem=d.totalTerm-(d.curTerm||0);const nd=new Date();nd.setMonth(nd.getMonth()+rem);
+    payoffItems+=`<div class="analyze-item"><span class="analyze-key">${d.name}</span><span class="analyze-val" style="font-size:12px">${nd.toLocaleDateString('vi-VN',{month:'numeric',year:'numeric'})} (còn ${rem} kỳ)</span></div>`;
   });
-
-  el.innerHTML=`
-    <div class="analyze-score">
-      <div class="analyze-score-num" style="color:${scoreColor}">${score}</div>
-      <div class="analyze-score-label">Điểm sức khoẻ tài chính · ${scoreLabel}</div>
-    </div>
+  el.innerHTML=`<div class="analyze-score"><div class="analyze-score-num" style="color:${scoreColor}">${score}</div>
+    <div class="analyze-score-label">Điểm sức khoẻ tài chính · ${scoreLabel}</div></div>
     <div class="analyze-item"><span class="analyze-key">Tỉ lệ nợ / thu nhập</span><span class="analyze-val" style="color:${debtRatio>40?'var(--red)':'var(--accent)'}">${debtRatio}%</span></div>
     <div class="analyze-item"><span class="analyze-key">Tỉ lệ chi phí / thu nhập</span><span class="analyze-val">${expenseRatio}%</span></div>
     <div class="analyze-item"><span class="analyze-key">Tỉ lệ tự do</span><span class="analyze-val" style="color:var(--purple)">${remainRatio}%</span></div>
     <div class="analyze-item"><span class="analyze-key">Tổng dư nợ còn lại</span><span class="analyze-val">${fmt(totalDebtLeft)}</span></div>
-    ${earliestPayoff?`<div class="analyze-item"><span class="analyze-key">Dự kiến tất toán sớm nhất</span><span class="analyze-val" style="font-size:12px">${earliestPayoff}</span></div>`:''}
-    <div class="analyze-tip">${
-      debtRatio>50?'⚠️ Tỉ lệ nợ trên 50% thu nhập — rủi ro cao. Ưu tiên trả nợ lãi suất cao nhất trước.':
-      debtRatio>35?'💡 Tỉ lệ nợ khá cao. Hạn chế chi tiêu phát sinh và tập trung trả nợ.':
-      '✅ Tỉ lệ nợ ổn. Duy trì kỷ luật chi tiêu và tăng quỹ tiết kiệm khẩn cấp.'
-    }</div>`;
+    ${payoffItems}
+    <div class="analyze-tip">${debtRatio>50?'⚠️ Tỉ lệ nợ trên 50% — rủi ro cao. Ưu tiên trả nợ lãi suất cao nhất trước.':debtRatio>35?'💡 Tỉ lệ nợ khá cao. Hạn chế chi tiêu và tập trung trả nợ.':'✅ Tỉ lệ nợ ổn. Duy trì kỷ luật và tăng quỹ tiết kiệm.'}</div>`;
 }
 
-// ── SETTINGS ───────────────────────────────────────────────────
+// ── SETTINGS ──────────────────────────────────────────────────
 function renderSettings(){
-  renderFinList('income');
-  renderFinList('expense');
-  renderDebtList('td');
-  renderDebtList('tc');
-  const sel=document.getElementById('fmt-select');
-  if(sel) sel.value=fmtMode;
+  renderFinList('income');renderFinList('expense');
+  renderDebtList('td');renderDebtList('tc');
   const activeCount=debts.filter(d=>!d.settled).length;
   const sub=document.getElementById('acc-debt-sub');
   if(sub) sub.textContent=`${activeCount} khoản đang hoạt động`;
   const wi=document.getElementById('wallet-base-input');
-  if(wi) wi.value=walletBase||'';
+  if(wi){wi.value=walletBase?fmtNoUnit(walletBase):'';wi.dataset.raw=walletBase;}
   const wsub=document.getElementById('acc-wallet-sub');
-  if(wsub) wsub.textContent=walletBase?(walletBase>0?`Điều chỉnh +${fmt(walletBase)}`:`Điều chỉnh ${fmt(walletBase)}`):'Chưa điều chỉnh';
+  if(wsub){const mt=txns[currentMonth]||[];const i=mt.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount),0);const o=mt.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);wsub.textContent=`Hiện tại: ${fmt(walletBase+i-o)}`;}
   renderSavingList();
+  setTheme(currentTheme);
 }
 
 window.toggleAcc=function(id){
-  const body =document.getElementById('body-'+id);
-  const arrow=document.getElementById('arr-'+id);
-  if(!body) return;
+  const body=document.getElementById('body-'+id);const arrow=document.getElementById('arr-'+id);if(!body)return;
   const isOpen=body.classList.contains('open');
-  body.classList.toggle('open',!isOpen);
-  arrow.classList.toggle('open',!isOpen);
+  body.classList.toggle('open',!isOpen);arrow.classList.toggle('open',!isOpen);
 };
 
 function renderFinList(mode){
   const items=mode==='income'?income:expense;
-  const el=document.getElementById('list-'+mode);
-  if(!el) return;
+  const el=document.getElementById('list-'+mode);if(!el)return;
   if(!items.length){el.innerHTML=`<div style="padding:14px;text-align:center;color:var(--sub);font-size:12px;font-weight:700">Chưa có</div>`;return;}
   el.innerHTML='';
   items.forEach((it,i)=>{
     const row=document.createElement('div');row.className='srow';
     if(i<items.length-1) row.style.borderBottom='1px solid var(--border)';
-    const ico=mode==='income'?'💵':'🧾';
-    const bg =mode==='income'?'rgba(200,255,87,.1)':'rgba(255,87,87,.1)';
-    row.innerHTML=`
-      <div class="s-ico" style="background:${bg}">${ico}</div>
+    const ico=mode==='income'?'💵':'🧾';const bg=mode==='income'?'rgba(200,255,87,.1)':'rgba(255,87,87,.1)';
+    row.innerHTML=`<div class="s-ico" style="background:${bg}">${ico}</div>
       <div class="s-info" onclick="openFinEdit('${mode}','${it.id}')">
         <div class="s-name">${it.name}</div>
-        <div class="s-val fin-val">${fmt(it.amount)}đ <span style="font-weight:600;color:var(--sub)">${it.note||''}</span></div>
-      </div>
-      <button class="s-del" onclick="confirmDelFin('${mode}','${it.id}')">✕</button>`;
+        <div class="s-val fin-val">${fmt(it.amount)} <span style="font-weight:600;color:var(--sub)">${it.note||''}</span></div>
+      </div><button class="s-del" onclick="confirmDelFin('${mode}','${it.id}')">✕</button>`;
     el.appendChild(row);
   });
 }
 
 function renderDebtList(type){
   const list=debts.filter(d=>d.type===type);
-  const el=document.getElementById('list-'+type);
-  if(!el) return;
+  const el=document.getElementById('list-'+type);if(!el)return;
   if(!list.length){el.innerHTML=`<div style="padding:14px;text-align:center;color:var(--sub);font-size:12px;font-weight:700">Chưa có</div>`;return;}
   el.innerHTML='';
   list.forEach((d,i)=>{
     const row=document.createElement('div');row.className='srow';
     if(i<list.length-1) row.style.borderBottom='1px solid var(--border)';
-    const ico=type==='td'?'💳':'💰';
-    const bg =type==='td'?'rgba(255,179,71,.1)':'rgba(87,200,255,.1)';
-    const kySub=type==='tc'&&d.totalTerm?` · Kỳ ${d.curTerm||0}/${d.totalTerm}`:'';
-    row.innerHTML=`
-      <div class="s-ico" style="background:${bg}">${ico}</div>
+    const ico=type==='td'?'💳':'💰';const bg=type==='td'?'rgba(255,179,71,.1)':'rgba(87,200,255,.1)';
+    const monthly=type==='tc'?tcGetMonthly(d):Number(d.monthly||0);
+    const subText=type==='td'
+      ?`${fmt(monthly)}/th · Đã dùng ${fmt(d.used||0)}/${fmt(d.limit||0)}`
+      :`${fmt(monthly)}/th · Kỳ ${d.curTerm||0}/${d.totalTerm||0} · Dư: ${fmt(tcGetDebt(d))}`;
+    row.innerHTML=`<div class="s-ico" style="background:${bg}">${ico}</div>
       <div class="s-info" onclick="openDebtEdit('${d.id}')">
         <div class="s-name">${d.name}${d.settled?' 🎉':''}</div>
-        <div class="s-val">${fmt(d.monthly)}đ/th · Ngày ${d.payDay||'—'}${kySub} · Dư: ${fmt(d.debt)}đ</div>
-      </div>
-      <button class="s-del" onclick="confirmDelDebt('${d.id}')">✕</button>`;
+        <div class="s-val">${subText}</div>
+      </div><button class="s-del" onclick="confirmDelDebt('${d.id}')">✕</button>`;
     el.appendChild(row);
   });
 }
 
-// ── DEBT MODAL ─────────────────────────────────────────────────
+// ── DEBT MODAL ────────────────────────────────────────────────
+function toggleTcFields(type){
+  document.getElementById('md-td-fields').style.display=type==='td'?'block':'none';
+  document.getElementById('md-tc-fields').style.display=type==='tc'?'block':'none';
+}
+window.onDebtTypeChange=val=>toggleTcFields(val);
+
 window.openDebtModal=function(type){
   editDebtId=null;
   document.getElementById('md-title').textContent=type==='td'?'Thêm thẻ tín dụng':'Thêm khoản vay';
-  ['md-name','md-debt','md-monthly','md-note','md-payday','md-curterm','md-totalterm'].forEach(id=>document.getElementById(id).value='');
+  ['md-name','md-payday','md-limit','md-used','md-monthly-td','md-settle-fee','md-note-td',
+   'md-principal','md-rate','md-totalterm','md-curterm','md-note-tc'].forEach(id=>{
+    const e=document.getElementById(id);if(e){e.value='';delete e.dataset.raw;}
+  });
+  const dd=document.getElementById('md-disburse');if(dd) dd.value='';
   document.getElementById('md-type').value=type;
   document.getElementById('md-del').style.display='none';
+  const prev=document.getElementById('tc-calc-preview');if(prev) prev.style.display='none';
   toggleTcFields(type);
   document.getElementById('modal-debt').classList.add('open');
   setTimeout(()=>document.getElementById('md-name').focus(),350);
 };
+
 window.openDebtEdit=function(id){
   const d=debts.find(x=>x.id===id);if(!d)return;
   editDebtId=id;
   document.getElementById('md-title').textContent='Chỉnh sửa';
   document.getElementById('md-name').value=d.name;
   document.getElementById('md-type').value=d.type;
-  document.getElementById('md-debt').value=d.debt;
-  document.getElementById('md-monthly').value=d.monthly;
-  document.getElementById('md-note').value=d.note||'';
   document.getElementById('md-payday').value=d.payDay||'';
-  document.getElementById('md-curterm').value=d.curTerm||'';
-  document.getElementById('md-totalterm').value=d.totalTerm||'';
   document.getElementById('md-del').style.display='block';
+  if(d.type==='td'){
+    setInputFmt('md-limit',d.limit||0);
+    setInputFmt('md-used',d.used||0);
+    setInputFmt('md-monthly-td',d.monthly||0);
+    setInputFmt('md-settle-fee',d.settleFee||0);
+    document.getElementById('md-note-td').value=d.note||'';
+  } else {
+    setInputFmt('md-principal',d.principal||0);
+    document.getElementById('md-disburse').value=d.disburseDate||'';
+    document.getElementById('md-rate').value=d.rate||'';
+    document.getElementById('md-totalterm').value=d.totalTerm||'';
+    document.getElementById('md-curterm').value=d.curTerm||'';
+    document.getElementById('md-note-tc').value=d.note||'';
+    setTimeout(window.calcTcFields,100);
+  }
   toggleTcFields(d.type);
   document.getElementById('modal-debt').classList.add('open');
 };
-function toggleTcFields(type){document.getElementById('md-tc-fields').style.display=type==='tc'?'block':'none';}
-window.onDebtTypeChange=val=>toggleTcFields(val);
 window.confirmDelDebt=id=>window.openDebtEdit(id);
+
 window.saveDebt=async function(){
-  const name    =document.getElementById('md-name').value.trim();
-  const type    =document.getElementById('md-type').value;
-  const debt    =Number(document.getElementById('md-debt').value)||0;
-  const monthly =Number(document.getElementById('md-monthly').value)||0;
-  const note    =document.getElementById('md-note').value.trim();
-  const payDay  =Number(document.getElementById('md-payday').value)||0;
-  const curTerm =Number(document.getElementById('md-curterm').value)||0;
-  const totalTerm=Number(document.getElementById('md-totalterm').value)||0;
+  const name   =document.getElementById('md-name').value.trim();
+  const type   =document.getElementById('md-type').value;
+  const payDay =Number(document.getElementById('md-payday').value)||0;
   if(!name){showToast('⚠️ Nhập tên');return;}
-  if(!monthly){showToast('⚠️ Nhập số tiền');return;}
-  const obj={name,type,debt,monthly,note,payDay};
-  if(type==='tc'){obj.curTerm=curTerm;obj.totalTerm=totalTerm;obj.settled=curTerm>=totalTerm&&totalTerm>0;}
-  if(editDebtId){const d=debts.find(x=>x.id===editDebtId);if(d)Object.assign(d,obj);}
+  let obj={name,type,payDay};
+  if(type==='td'){
+    const limit    =getInputVal('md-limit');
+    const used     =getInputVal('md-used');
+    const monthly  =getInputVal('md-monthly-td');
+    const settleFee=getInputVal('md-settle-fee');
+    const note     =document.getElementById('md-note-td').value.trim();
+    if(!monthly){showToast('⚠️ Nhập trả tối thiểu/tháng');return;}
+    obj={...obj,limit,used,monthly,settleFee,note};
+  } else {
+    const principal=getInputVal('md-principal');
+    const rate     =Number(document.getElementById('md-rate').value)||0;
+    const totalTerm=Number(document.getElementById('md-totalterm').value)||0;
+    const curTerm  =Number(document.getElementById('md-curterm').value)||0;
+    const disburseDate=document.getElementById('md-disburse').value||'';
+    const note     =document.getElementById('md-note-tc').value.trim();
+    if(!principal||!rate||!totalTerm){showToast('⚠️ Nhập đủ vốn gốc, lãi suất, số kỳ');return;}
+    const settled=curTerm>=totalTerm&&totalTerm>0;
+    obj={...obj,principal,rate,totalTerm,curTerm,disburseDate,note,settled};
+  }
+  if(editDebtId){const d=debts.find(x=>x.id===editDebtId);if(d) Object.assign(d,obj);}
   else debts.push({id:'d'+Date.now(),...obj});
   await saveToFirestore();closeModal('modal-debt');renderAll();
   showToast(editDebtId?'✓ Đã cập nhật':'✓ Đã thêm');
@@ -813,11 +849,13 @@ window.deleteDebt=async function(){
   await saveToFirestore();closeModal('modal-debt');renderAll();showToast('🗑 Đã xoá');
 };
 
-// ── FINANCE MODAL ──────────────────────────────────────────────
+// ── FINANCE MODAL ─────────────────────────────────────────────
 window.openFinModal=function(mode){
   finMode=mode;editFinId=null;
   document.getElementById('mf-title').textContent=mode==='income'?'Thêm thu nhập':'Thêm chi phí';
-  ['mf-name','mf-amount','mf-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mf-name').value='';
+  const ma=document.getElementById('mf-amount');ma.value='';delete ma.dataset.raw;
+  document.getElementById('mf-note').value='';
   document.getElementById('mf-del').style.display='none';
   document.getElementById('modal-fin').classList.add('open');
   setTimeout(()=>document.getElementById('mf-name').focus(),350);
@@ -829,7 +867,7 @@ window.openFinEdit=function(mode,id){
   editFinId=id;
   document.getElementById('mf-title').textContent=mode==='income'?'Chỉnh sửa thu nhập':'Chỉnh sửa chi phí';
   document.getElementById('mf-name').value=it.name;
-  document.getElementById('mf-amount').value=it.amount;
+  setInputFmt('mf-amount',it.amount);
   document.getElementById('mf-note').value=it.note||'';
   document.getElementById('mf-del').style.display='block';
   document.getElementById('modal-fin').classList.add('open');
@@ -837,15 +875,14 @@ window.openFinEdit=function(mode,id){
 window.confirmDelFin=(mode,id)=>window.openFinEdit(mode,id);
 window.saveFin=async function(){
   const name  =document.getElementById('mf-name').value.trim();
-  const amount=Number(document.getElementById('mf-amount').value)||0;
+  const amount=getInputVal('mf-amount');
   const note  =document.getElementById('mf-note').value.trim();
   if(!name){showToast('⚠️ Nhập tên');return;}
   if(!amount){showToast('⚠️ Nhập số tiền');return;}
   const list=finMode==='income'?income:expense;
   if(editFinId){const it=list.find(x=>x.id===editFinId);if(it){it.name=name;it.amount=amount;it.note=note;}}
   else list.push({id:'f'+Date.now(),name,amount,note});
-  await saveToFirestore();closeModal('modal-fin');renderAll();
-  showToast(editFinId?'✓ Đã cập nhật':'✓ Đã thêm');
+  await saveToFirestore();closeModal('modal-fin');renderAll();showToast(editFinId?'✓ Cập nhật':'✓ Đã thêm');
 };
 window.deleteFin=async function(){
   if(!editFinId||!confirm('Xoá?'))return;
@@ -854,7 +891,7 @@ window.deleteFin=async function(){
   await saveToFirestore();closeModal('modal-fin');renderAll();showToast('🗑 Đã xoá');
 };
 
-// ── MONTH PICKER ───────────────────────────────────────────────
+// ── MONTH PICKER ──────────────────────────────────────────────
 window.openMonthPicker=function(){
   const yr=currentMonth.split('-')[0];
   document.getElementById('mp-title').textContent=`Chọn tháng — ${yr}`;
@@ -870,36 +907,32 @@ window.openMonthPicker=function(){
   document.getElementById('modal-month').classList.add('open');
 };
 
-// ── UTILS ──────────────────────────────────────────────────────
-window.closeModal=id=>document.getElementById(id).classList.remove('open');
-window.closeMBg=(id,e)=>{if(e.target===document.getElementById(id))window.closeModal(id);};
-
+// ── UTILS ─────────────────────────────────────────────────────
+window.closeModal=id=>document.getElementById(id)?.classList.remove('open');
+window.closeMBg=(id,e)=>{if(e.target===document.getElementById(id)) window.closeModal(id);};
 window.switchPage=function(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+name)?.classList.add('active');
   document.getElementById('nav-'+name)?.classList.add('active');
   openDetail=null;
-  // re-render on tab switch to keep data fresh
   if(name==='home')     renderHome();
   if(name==='paid')     renderPaid();
   if(name==='txn')      renderTxnPage();
   if(name==='tools')    renderTools();
   if(name==='settings') renderSettings();
 };
-
 window.resetAll=async function(){
   if(!confirm('Reset toàn bộ về mặc định?'))return;
   debts=clone(DEF_DEBTS);income=clone(DEF_INCOME);expense=clone(DEF_EXPENSE);
   ticks={};txns={};savings=[];walletBase=0;lastAutoMonth='';
   await saveToFirestore();renderAll();showToast('✓ Đã reset');
 };
-
 function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2200);
 }
 
-// ── INIT ───────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────
 initMonth();
-fmtMode=localStorage.getItem('vn_fmt')||'short';
+initTheme();

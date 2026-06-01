@@ -15,11 +15,7 @@
 </head>
 <body>
 
-<!-- LOADING -->
-<div class="loading-overlay" id="loading-overlay">
-  <div class="spinner"></div>
-  <p>Đang kết nối…</p>
-</div>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><p>Đang kết nối…</p></div>
 
 <!-- AUTH -->
 <div class="auth-page" id="auth-page">
@@ -39,65 +35,28 @@
   <button class="auth-btn auth-anon" onclick="signInAnon()">Dùng không cần đăng nhập</button>
 </div>
 
-<!-- ══ PAGE: HOME (Tổng quan) ══ -->
-<div class="page" id="page-home">
-<div class="scroll">
+<!-- PAGE: HOME -->
+<div class="page" id="page-home"><div class="scroll">
   <div class="top-bar">
-    <div>
-      <h1>👛 Ví của tôi</h1>
-      <p id="sub-date">—</p>
-    </div>
-    <div class="month-pill" onclick="openMonthPicker()">
-      <span id="month-label">—</span>
+    <div><h1>👛 Ví của tôi</h1><p id="sub-date">—</p></div>
+    <div class="month-pill" onclick="openMonthPicker()"><span id="month-label">—</span>
       <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
   </div>
-
-  <div class="sync-badge" id="sync-badge">
-    <div class="sync-dot"></div>
-    <span id="sync-text">Đang kết nối…</span>
-  </div>
-
-  <!-- 5 KPI cards: 2+2+1 -->
+  <div class="sync-badge" id="sync-badge"><div class="sync-dot"></div><span id="sync-text">Đang kết nối…</span></div>
   <div class="dash-grid">
-    <div class="dash-card income">
-      <div class="dc-label">Thu tháng này</div>
-      <div class="dc-val" id="kpi-income">—</div>
-      <div class="dc-unit">cố định + đột xuất</div>
-    </div>
-    <div class="dash-card expense">
-      <div class="dc-label">Chi tháng này</div>
-      <div class="dc-val" id="kpi-expense">—</div>
-      <div class="dc-unit">cố định + đột xuất</div>
-    </div>
-    <div class="dash-card debt-pay">
-      <div class="dc-label">Trả nợ tháng này</div>
-      <div class="dc-val" id="kpi-debt-pay">—</div>
-      <div class="dc-unit">tổng các khoản nợ</div>
-    </div>
-    <div class="dash-card remain">
-      <div class="dc-label">Còn lại</div>
-      <div class="dc-val" id="kpi-remain">—</div>
-      <div class="dc-unit">thu − chi − nợ</div>
-    </div>
-    <div class="dash-card debt-total">
-      <div class="dc-label">Tổng dư nợ còn lại</div>
-      <div class="dc-val" id="kpi-debt-total">—</div>
-      <div class="dc-unit">tất cả khoản nợ hiện tại</div>
-    </div>
-    <div class="dash-card wallet">
-      <div class="dc-label">Tiền trong túi</div>
-      <div class="dc-val" id="kpi-wallet">—</div>
-      <div class="dc-unit">thu − chi − nợ ± điều chỉnh</div>
-    </div>
+    <div class="dash-card income"><div class="dc-label">Thu tháng này</div><div class="dc-val" id="kpi-income">—</div><div class="dc-unit">cố định + đột xuất</div></div>
+    <div class="dash-card expense"><div class="dc-label">Chi tháng này</div><div class="dc-val" id="kpi-expense">—</div><div class="dc-unit">cố định + đột xuất</div></div>
+    <div class="dash-card debt-pay"><div class="dc-label">Trả nợ tháng này</div><div class="dc-val" id="kpi-debt-pay">—</div><div class="dc-unit">tổng các khoản nợ</div></div>
+    <div class="dash-card remain"><div class="dc-label">Còn lại</div><div class="dc-val" id="kpi-remain">—</div><div class="dc-unit">thu − chi − nợ</div></div>
+    <div class="dash-card debt-total"><div class="dc-label">Tổng dư nợ còn lại</div><div class="dc-val" id="kpi-debt-total">—</div><div class="dc-unit">tất cả khoản nợ hiện tại</div></div>
+    <div class="dash-card wallet"><div class="dc-label">Tiền trong túi</div><div class="dc-val" id="kpi-wallet">—</div><div class="dc-unit">số dư thực tế hiện tại</div></div>
   </div>
-
-  <!-- Mini ratio bar -->
   <div class="ratio-wrap">
     <div class="ratio-bar">
       <div class="ratio-seg" id="rb-expense" style="background:var(--red)"></div>
-      <div class="ratio-seg" id="rb-debt"    style="background:var(--blue)"></div>
-      <div class="ratio-seg" id="rb-remain"  style="background:var(--purple)"></div>
+      <div class="ratio-seg" id="rb-debt" style="background:var(--blue)"></div>
+      <div class="ratio-seg" id="rb-remain" style="background:var(--purple)"></div>
     </div>
     <div class="ratio-legend">
       <div class="ratio-item"><div class="ratio-dot" style="background:var(--red)"></div>Chi tiêu</div>
@@ -105,48 +64,27 @@
       <div class="ratio-item"><div class="ratio-dot" style="background:var(--purple)"></div>Còn lại</div>
     </div>
   </div>
-
-  <!-- Progress trả nợ -->
   <div class="prog-wrap">
     <div class="prog-top"><span>Tiến độ thanh toán nợ tháng này</span><strong id="prog-pct">0%</strong></div>
     <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
   </div>
-</div>
-</div>
+</div></div>
 
-<!-- ══ PAGE: PAID (Đã thanh toán) ══ -->
-<div class="page" id="page-paid">
-<div class="scroll">
+<!-- PAGE: PAID -->
+<div class="page" id="page-paid"><div class="scroll">
   <div class="top-bar">
-    <div>
-      <h1>✅ Đã thanh toán</h1>
-      <p id="paid-subtitle">Tháng hiện tại</p>
-    </div>
-    <div class="month-pill" onclick="openMonthPicker()">
-      <span id="paid-month-label">—</span>
+    <div><h1>✅ Đã thanh toán</h1><p id="paid-subtitle">Tháng hiện tại</p></div>
+    <div class="month-pill" onclick="openMonthPicker()"><span id="paid-month-label">—</span>
       <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
   </div>
-
-  <!-- Summary bar -->
-  <div class="paid-summary" id="paid-summary">
-    <div class="ps-item">
-      <div class="ps-label">Tổng khoản nợ</div>
-      <div class="ps-val" id="ps-total-debt">—</div>
-    </div>
+  <div class="paid-summary">
+    <div class="ps-item"><div class="ps-label">Tổng / tháng</div><div class="ps-val" id="ps-total-debt">—</div></div>
     <div class="ps-sep"></div>
-    <div class="ps-item">
-      <div class="ps-label">Đã thanh toán</div>
-      <div class="ps-val accent" id="ps-paid">—</div>
-    </div>
+    <div class="ps-item"><div class="ps-label">Đã thanh toán</div><div class="ps-val accent" id="ps-paid">—</div></div>
     <div class="ps-sep"></div>
-    <div class="ps-item">
-      <div class="ps-label">Còn lại</div>
-      <div class="ps-val orange" id="ps-unpaid">—</div>
-    </div>
+    <div class="ps-item"><div class="ps-label">Còn lại</div><div class="ps-val orange" id="ps-unpaid">—</div></div>
   </div>
-
-  <!-- Filter tabs -->
   <div class="seg-wrap">
     <div class="seg">
       <div class="seg-btn active" onclick="filterTab('all',this)">Tất cả</div>
@@ -155,157 +93,104 @@
       <div class="seg-btn" onclick="filterTab('unpaid',this)">Chưa TT</div>
     </div>
   </div>
-
   <div id="card-list"></div>
-</div>
-</div>
+</div></div>
 
-<!-- ══ PAGE: TXN (Thu chi) ══ -->
-<div class="page" id="page-txn">
-<div class="scroll">
+<!-- PAGE: TXN -->
+<div class="page" id="page-txn"><div class="scroll">
   <div class="top-bar">
-    <div>
-      <h1>📊 Thu chi</h1>
-      <p id="txn-subtitle">Tháng hiện tại</p>
+    <div><h1>📊 Thu chi</h1><p id="txn-subtitle">Tháng hiện tại</p></div>
+    <div class="month-pill" onclick="openMonthPicker()"><span id="txn-month-label">—</span>
+      <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
   </div>
-
-  <!-- KPI row -->
   <div class="txn-kpi-row">
-    <div class="txn-kpi in">
-      <div class="txn-kpi-label">Thu đột xuất</div>
-      <div class="txn-kpi-val" id="txn-kpi-in">—</div>
-    </div>
-    <div class="txn-kpi out">
-      <div class="txn-kpi-label">Chi đột xuất</div>
-      <div class="txn-kpi-val" id="txn-kpi-out">—</div>
-    </div>
+    <div class="txn-kpi in"><div class="txn-kpi-label">Thu đột xuất</div><div class="txn-kpi-val" id="txn-kpi-in">—</div></div>
+    <div class="txn-kpi out"><div class="txn-kpi-label">Chi đột xuất</div><div class="txn-kpi-val" id="txn-kpi-out">—</div></div>
   </div>
-
   <div class="slabel" style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;padding-right:16px">
     <span>Giao dịch tháng này</span>
-    <button onclick="openTxnModal()"
-      style="background:var(--accent);color:#0A0A0F;border:none;border-radius:100px;
-      padding:6px 16px;font-family:'Mulish',sans-serif;font-size:12px;font-weight:800;cursor:pointer">
-      + Thêm
-    </button>
+    <button onclick="openTxnModal()" style="background:var(--accent);color:#0A0A0F;border:none;border-radius:100px;padding:6px 16px;font-family:'Mulish',sans-serif;font-size:12px;font-weight:800;cursor:pointer">+ Thêm</button>
   </div>
   <div class="txn-list" id="txn-list"></div>
+  <div style="height:12px"></div>
+</div></div>
 
-</div>
-</div>
-
-<!-- ══ PAGE: TOOLS (Tiện ích) ══ -->
-<div class="page" id="page-tools">
-<div class="scroll">
-  <div class="top-bar" style="padding-bottom:8px">
-    <div>
-      <h1>🛠 Tiện ích</h1>
-      <p>Công cụ tài chính cá nhân</p>
-    </div>
-  </div>
-
-  <!-- Tool: Tính lãi vay -->
+<!-- PAGE: TOOLS -->
+<div class="page" id="page-tools"><div class="scroll">
+  <div class="top-bar" style="padding-bottom:8px"><div><h1>🛠 Tiện ích</h1><p>Công cụ tài chính cá nhân</p></div></div>
   <div class="tool-card" id="tool-interest">
     <div class="tool-hdr" onclick="toggleTool('tool-interest')">
       <div class="tool-ico" style="background:rgba(87,200,255,.12)">🧮</div>
-      <div class="tool-info">
-        <div class="tool-title">Tính lãi vay</div>
-        <div class="tool-sub">Nhập số tiền vay → ra số tiền trả mỗi tháng</div>
-      </div>
+      <div class="tool-info"><div class="tool-title">Tính lãi vay</div><div class="tool-sub">Nhập số tiền vay → ra số tiền trả mỗi tháng</div></div>
       <div class="tool-arrow" id="arr-tool-interest">▸</div>
     </div>
     <div class="tool-body" id="body-tool-interest">
-      <div class="fg"><label>Số tiền vay (đ)</label><input id="ti-principal" type="number" inputmode="numeric" placeholder="VD: 50000000"></div>
+      <div class="fg"><label>Số tiền vay (đ)</label><input id="ti-principal" type="number" inputmode="numeric" placeholder="VD: 50.000.000"></div>
       <div class="fg"><label>Lãi suất (%/tháng)</label><input id="ti-rate" type="number" inputmode="decimal" placeholder="VD: 1.8"></div>
       <div class="fg"><label>Số kỳ (tháng)</label><input id="ti-terms" type="number" inputmode="numeric" placeholder="VD: 36"></div>
       <button class="tool-run-btn" onclick="calcInterest()">Tính ngay</button>
       <div class="tool-result" id="ti-result"></div>
     </div>
   </div>
-
-  <!-- Tool: Lịch đến hạn -->
   <div class="tool-card" id="tool-schedule">
     <div class="tool-hdr" onclick="toggleTool('tool-schedule')">
       <div class="tool-ico" style="background:rgba(200,255,87,.12)">📅</div>
-      <div class="tool-info">
-        <div class="tool-title">Lịch đến hạn tháng này</div>
-        <div class="tool-sub">Danh sách ngày thanh toán các khoản nợ</div>
-      </div>
+      <div class="tool-info"><div class="tool-title">Lịch đến hạn tháng này</div><div class="tool-sub">Danh sách ngày thanh toán các khoản nợ</div></div>
       <div class="tool-arrow" id="arr-tool-schedule">▸</div>
     </div>
-    <div class="tool-body" id="body-tool-schedule">
-      <div id="schedule-list"></div>
-    </div>
+    <div class="tool-body" id="body-tool-schedule"><div id="schedule-list"></div></div>
   </div>
-
-  <!-- Tool: Phân tích tài chính -->
   <div class="tool-card" id="tool-analyze">
     <div class="tool-hdr" onclick="toggleTool('tool-analyze')">
       <div class="tool-ico" style="background:rgba(197,123,255,.12)">💡</div>
-      <div class="tool-info">
-        <div class="tool-title">Phân tích sức khoẻ tài chính</div>
-        <div class="tool-sub">Tỉ lệ nợ, dự kiến tất toán, gợi ý</div>
-      </div>
+      <div class="tool-info"><div class="tool-title">Phân tích sức khoẻ tài chính</div><div class="tool-sub">Tỉ lệ nợ, dự kiến tất toán, gợi ý</div></div>
       <div class="tool-arrow" id="arr-tool-analyze">▸</div>
     </div>
-    <div class="tool-body" id="body-tool-analyze">
-      <div id="analyze-content"></div>
-    </div>
+    <div class="tool-body" id="body-tool-analyze"><div id="analyze-content"></div></div>
   </div>
-
-  <!-- Tool: Tính lãi kép tiết kiệm -->
   <div class="tool-card" id="tool-saving-calc">
     <div class="tool-hdr" onclick="toggleTool('tool-saving-calc')">
       <div class="tool-ico" style="background:rgba(87,255,179,.12)">📈</div>
-      <div class="tool-info">
-        <div class="tool-title">Lãi kép tiết kiệm</div>
-        <div class="tool-sub">Gửi bao nhiêu/tháng để đạt mục tiêu?</div>
-      </div>
+      <div class="tool-info"><div class="tool-title">Lãi kép tiết kiệm</div><div class="tool-sub">Gửi bao nhiêu/tháng để đạt mục tiêu?</div></div>
       <div class="tool-arrow" id="arr-tool-saving-calc">▸</div>
     </div>
     <div class="tool-body" id="body-tool-saving-calc">
-      <div class="fg"><label>Số tiền mục tiêu (đ)</label><input id="sc-goal" type="number" inputmode="numeric" placeholder="VD: 100000000"></div>
+      <div class="fg"><label>Số tiền mục tiêu (đ)</label><input id="sc-goal" type="number" inputmode="numeric" placeholder="VD: 100.000.000"></div>
       <div class="fg"><label>Lãi suất (%/năm)</label><input id="sc-rate" type="number" inputmode="decimal" placeholder="VD: 6"></div>
       <div class="fg"><label>Thời gian (tháng)</label><input id="sc-months" type="number" inputmode="numeric" placeholder="VD: 24"></div>
       <button class="tool-run-btn" onclick="calcSaving()" style="background:var(--green);color:#0A0A0F">Tính ngay</button>
       <div class="tool-result" id="sc-result"></div>
     </div>
   </div>
+</div></div>
 
-</div>
-</div>
-
-<!-- ══ PAGE: SETTINGS (Cài đặt) ══ -->
-<div class="page" id="page-settings">
-<div class="scroll">
+<!-- PAGE: SETTINGS -->
+<div class="page" id="page-settings"><div class="scroll">
   <div class="top-bar" style="padding-bottom:8px">
-    <div>
-      <h1>⚙️ Cài đặt</h1>
-      <p id="acc-email-sub">—</p>
-    </div>
+    <div><h1>⚙️ Cài đặt</h1><p id="acc-email-sub">—</p></div>
     <div class="sett-avatar" id="sett-avatar">👤</div>
   </div>
 
-  <!-- Thư mục lớn dạng accordion -->
+  <!-- Số dư & Tiết kiệm -->
   <div class="acc-group" id="acc-wallet">
     <div class="acc-hdr" onclick="toggleAcc('acc-wallet')">
-      <div class="acc-ico" style="background:rgba(87,200,255,.1)">👛</div>
-      <div class="acc-info"><div class="acc-title">Số dư & Tiết kiệm</div><div class="acc-sub" id="acc-wallet-sub">Chưa điều chỉnh</div></div>
+      <div class="acc-ico" style="background:rgba(87,200,255,.1)">💰</div>
+      <div class="acc-info"><div class="acc-title">Số dư & Tiết kiệm</div><div class="acc-sub" id="acc-wallet-sub">Tiền thực tế trong túi</div></div>
       <div class="acc-arrow" id="arr-acc-wallet">▸</div>
     </div>
     <div class="acc-body" id="body-acc-wallet">
-      <div class="sg-label">Điều chỉnh tiền trong túi</div>
+      <div class="sg-label">💵 Số dư hiện tại</div>
       <div class="slist" style="margin-bottom:12px">
-        <div class="srow" style="cursor:default;flex-direction:column;align-items:flex-start;gap:8px">
-          <div class="s-val" style="font-size:11px">Nhập số tiền để cân chỉnh nếu thực tế lệch với tính toán</div>
+        <div class="srow" style="cursor:default">
+          <div class="s-ico" style="background:rgba(87,200,255,.1)">👛</div>
+          <div class="s-info"><div class="s-name">Tiền trong túi</div><div class="s-val">Số tiền thực tế bạn đang có</div></div>
+        </div>
+        <div class="srow" style="cursor:default;padding-top:8px;padding-bottom:12px">
           <div style="display:flex;gap:8px;align-items:center;width:100%">
-            <input id="wallet-base-input" type="number" inputmode="numeric" placeholder="VD: 500000 hoặc -200000"
-              style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;
-              color:var(--text);font-family:'Mulish',sans-serif;font-size:14px;font-weight:700;outline:none">
-            <button onclick="saveWalletBase()"
-              style="background:var(--accent);color:#0A0A0F;border:none;border-radius:12px;padding:10px 18px;
-              font-family:'Mulish',sans-serif;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0">Lưu</button>
+            <input id="wallet-base-input" type="number" inputmode="numeric" placeholder="Nhập số tiền hiện có"
+              style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--text);font-family:'Mulish',sans-serif;font-size:14px;font-weight:700;outline:none">
+            <button onclick="saveWalletBase()" style="background:var(--accent);color:#0A0A0F;border:none;border-radius:12px;padding:10px 18px;font-family:'Mulish',sans-serif;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0">Lưu</button>
           </div>
         </div>
       </div>
@@ -318,7 +203,8 @@
     </div>
   </div>
 
-    <div class="acc-group" id="acc-finance">
+  <!-- Tài chính -->
+  <div class="acc-group" id="acc-finance">
     <div class="acc-hdr" onclick="toggleAcc('acc-finance')">
       <div class="acc-ico" style="background:rgba(200,255,87,.1)">💵</div>
       <div class="acc-info"><div class="acc-title">Tài chính</div><div class="acc-sub">Thu nhập & chi phí cố định</div></div>
@@ -334,6 +220,7 @@
     </div>
   </div>
 
+  <!-- Khoản nợ -->
   <div class="acc-group" id="acc-debt">
     <div class="acc-hdr" onclick="toggleAcc('acc-debt')">
       <div class="acc-ico" style="background:rgba(87,200,255,.1)">💳</div>
@@ -350,30 +237,33 @@
     </div>
   </div>
 
+  <!-- Giao diện -->
   <div class="acc-group" id="acc-display">
     <div class="acc-hdr" onclick="toggleAcc('acc-display')">
       <div class="acc-ico" style="background:rgba(197,123,255,.1)">🎨</div>
-      <div class="acc-info"><div class="acc-title">Hiển thị</div><div class="acc-sub">Định dạng số tiền</div></div>
+      <div class="acc-info"><div class="acc-title">Giao diện</div><div class="acc-sub" id="theme-sub">Theme hiện tại</div></div>
       <div class="acc-arrow" id="arr-acc-display">▸</div>
     </div>
     <div class="acc-body" id="body-acc-display">
-      <div class="slist">
-        <div class="srow" style="cursor:default">
-          <div class="s-ico" style="background:rgba(200,255,87,.1)">💰</div>
-          <div class="s-info"><div class="s-name">Định dạng số tiền</div></div>
-          <select id="fmt-select" onchange="changeFmt(this.value)"
-            style="background:var(--card2);border:1px solid var(--border);border-radius:10px;
-            padding:6px 10px;color:var(--accent);font-family:'Mulish',sans-serif;font-size:12px;
-            font-weight:800;outline:none;-webkit-appearance:none;cursor:pointer">
-            <option value="short">1.1Mđ</option>
-            <option value="full">1,113,000đ</option>
-            <option value="million">1.1 triệu</option>
-          </select>
+      <div class="sg-label">Chọn theme</div>
+      <div class="theme-picker">
+        <div class="tp-btn active" id="tp-dark" onclick="setTheme('dark')">
+          <div class="tp-swatch" style="background:#0A0A0F;border:2px solid #333"></div>
+          <div class="tp-label">Dark</div>
+        </div>
+        <div class="tp-btn" id="tp-light" onclick="setTheme('light')">
+          <div class="tp-swatch" style="background:#F4F4F8;border:2px solid #ddd"></div>
+          <div class="tp-label">Light</div>
+        </div>
+        <div class="tp-btn" id="tp-amoled" onclick="setTheme('amoled')">
+          <div class="tp-swatch" style="background:#000000;border:2px solid #222"></div>
+          <div class="tp-label">AMOLED</div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Tài khoản -->
   <div class="acc-group" id="acc-account">
     <div class="acc-hdr" onclick="toggleAcc('acc-account')">
       <div class="acc-ico" style="background:rgba(87,200,255,.1)">👤</div>
@@ -384,10 +274,7 @@
       <div class="slist">
         <div class="srow">
           <div class="s-ico" style="background:rgba(87,200,255,.1)">👤</div>
-          <div class="s-info">
-            <div class="s-name" id="acc-name">—</div>
-            <div class="s-val" id="acc-email">—</div>
-          </div>
+          <div class="s-info"><div class="s-name" id="acc-name">—</div><div class="s-val" id="acc-email">—</div></div>
         </div>
         <div class="srow" onclick="doSignOut()" style="cursor:pointer">
           <div class="s-ico" style="background:rgba(255,87,87,.1)">🚪</div>
@@ -397,6 +284,7 @@
     </div>
   </div>
 
+  <!-- Nguy hiểm -->
   <div class="acc-group" id="acc-danger">
     <div class="acc-hdr" onclick="toggleAcc('acc-danger')">
       <div class="acc-ico" style="background:rgba(255,87,87,.1)">⚠️</div>
@@ -407,65 +295,49 @@
       <div class="slist">
         <div class="srow danger" onclick="resetAll()" style="cursor:pointer">
           <div class="s-ico" style="background:rgba(255,87,87,.12)">🗑️</div>
-          <div class="s-info">
-            <div class="s-name">Xoá toàn bộ & reset</div>
-            <div class="s-val">Khôi phục dữ liệu mặc định</div>
-          </div>
+          <div class="s-info"><div class="s-name">Xoá toàn bộ & reset</div><div class="s-val">Khôi phục dữ liệu mặc định</div></div>
         </div>
       </div>
     </div>
   </div>
-
   <div style="height:16px"></div>
-</div>
-</div>
+</div></div>
 
-<!-- BOTTOM NAV (5 tabs) -->
+<!-- BOTTOM NAV -->
 <div class="bnav" id="bnav">
   <div class="ni active" id="nav-home" onclick="switchPage('home')">
-    <div class="ni-icon">
-      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
-    </div>
+    <div class="ni-icon"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></div>
     <div class="ni-label">Tổng quan</div>
   </div>
   <div class="ni" id="nav-paid" onclick="switchPage('paid')">
-    <div class="ni-icon">
-      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-    </div>
+    <div class="ni-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
     <div class="ni-label">Đã TT</div>
   </div>
   <div class="ni" id="nav-txn" onclick="switchPage('txn')">
-    <div class="ni-icon">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </div>
+    <div class="ni-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
     <div class="ni-label">Thu chi</div>
   </div>
   <div class="ni" id="nav-tools" onclick="switchPage('tools')">
-    <div class="ni-icon">
-      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    </div>
+    <div class="ni-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
     <div class="ni-label">Tiện ích</div>
   </div>
   <div class="ni" id="nav-settings" onclick="switchPage('settings')">
-    <div class="ni-icon">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-    </div>
+    <div class="ni-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
     <div class="ni-label">Cài đặt</div>
   </div>
 </div>
 
-<!-- ── MODAL: THU / CHI ĐỘT XUẤT ── -->
+<!-- MODAL: THU/CHI -->
 <div class="modal-bg" id="modal-txn" onclick="closeMBg('modal-txn',event)">
   <div class="msheet">
-    <div class="mhandle"></div>
-    <div class="mtitle">Ghi khoản</div>
+    <div class="mhandle"></div><div class="mtitle">Ghi khoản</div>
     <div class="type-toggle">
-      <div class="tt-btn" id="tt-in"  onclick="setTxnType('in')">📈 Thu đột xuất</div>
+      <div class="tt-btn" id="tt-in" onclick="setTxnType('in')">📈 Thu đột xuất</div>
       <div class="tt-btn active-out" id="tt-out" onclick="setTxnType('out')">📉 Chi đột xuất</div>
     </div>
     <div class="suggest-wrap" id="txn-chips"></div>
     <div class="fg"><label>Tên khoản</label><input id="txn-name" type="text" placeholder="VD: Thưởng dự án"></div>
-    <div class="fg"><label>Số tiền (đ)</label><input id="txn-amount" type="number" inputmode="numeric" placeholder="VD: 500000"></div>
+    <div class="fg"><label>Số tiền (đ)</label><input id="txn-amount" type="text" inputmode="numeric" placeholder="VD: 500.000" oninput="fmtInput(this)"></div>
     <div class="mbtns">
       <button class="mbtn mbtn-cancel" onclick="closeModal('modal-txn')">Huỷ</button>
       <button class="mbtn mbtn-del" id="txn-del" onclick="deleteTxn()">Xoá</button>
@@ -474,13 +346,12 @@
   </div>
 </div>
 
-<!-- ── MODAL: TIẾT KIỆM ── -->
+<!-- MODAL: TIẾT KIỆM -->
 <div class="modal-bg" id="modal-saving" onclick="closeMBg('modal-saving',event)">
   <div class="msheet">
-    <div class="mhandle"></div>
-    <div class="mtitle">Thêm vào quỹ tiết kiệm</div>
+    <div class="mhandle"></div><div class="mtitle">Thêm vào quỹ tiết kiệm</div>
     <div class="fg"><label>Ghi chú</label><input id="sv-name" type="text" placeholder="VD: Tiết kiệm tháng 6"></div>
-    <div class="fg"><label>Số tiền (đ)</label><input id="sv-amount" type="number" inputmode="numeric" placeholder="VD: 1000000"></div>
+    <div class="fg"><label>Số tiền (đ)</label><input id="sv-amount" type="text" inputmode="numeric" placeholder="VD: 1.000.000" oninput="fmtInput(this)"></div>
     <div class="mbtns">
       <button class="mbtn mbtn-cancel" onclick="closeModal('modal-saving')">Huỷ</button>
       <button class="mbtn mbtn-save" onclick="saveSaving()">Lưu</button>
@@ -488,26 +359,49 @@
   </div>
 </div>
 
-<!-- ── MODAL: DEBT ── -->
+<!-- MODAL: DEBT -->
 <div class="modal-bg" id="modal-debt" onclick="closeMBg('modal-debt',event)">
   <div class="msheet">
     <div class="mhandle"></div>
     <div class="mtitle" id="md-title">Thêm khoản nợ</div>
-    <div class="fg"><label>Tên ngân hàng</label><input id="md-name" type="text" placeholder="VD: TP Bank"></div>
+    <div class="fg"><label>Tên ngân hàng / tổ chức</label><input id="md-name" type="text" placeholder="VD: TP Bank"></div>
     <div class="fg"><label>Loại</label>
       <select id="md-type" onchange="onDebtTypeChange(this.value)">
         <option value="td">💳 Thẻ Tín Dụng</option>
         <option value="tc">💰 Vay Tín Chấp</option>
       </select>
     </div>
-    <div class="fg"><label>Dư nợ hiện tại (đ)</label><input id="md-debt" type="number" inputmode="numeric" placeholder="VD: 12000000"></div>
-    <div class="fg"><label>Trả mỗi tháng (đ)</label><input id="md-monthly" type="number" inputmode="numeric" placeholder="VD: 216000"></div>
     <div class="fg"><label>Ngày thanh toán hàng tháng</label><input id="md-payday" type="number" inputmode="numeric" placeholder="VD: 15" min="1" max="31"></div>
-    <div class="fg"><label>Ghi chú (lãi suất…)</label><input id="md-note" type="text" placeholder="VD: 1.80%/th"></div>
-    <div id="md-tc-fields" style="display:none">
-      <div class="fg"><label>Kỳ hiện tại</label><input id="md-curterm" type="number" inputmode="numeric" placeholder="VD: 13"></div>
-      <div class="fg"><label>Tổng số kỳ</label><input id="md-totalterm" type="number" inputmode="numeric" placeholder="VD: 35"></div>
+
+    <!-- TD fields -->
+    <div id="md-td-fields">
+      <div class="fg"><label>Hạn mức tín dụng (đ)</label><input id="md-limit" type="text" inputmode="numeric" placeholder="VD: 50.000.000" oninput="fmtInput(this)"></div>
+      <div class="fg"><label>Đã sử dụng / dư nợ (đ)</label><input id="md-used" type="text" inputmode="numeric" placeholder="VD: 12.000.000" oninput="fmtInput(this)" onchange="calcTdFields()"></div>
+      <div class="fg"><label>Trả tối thiểu / tháng (đ)</label><input id="md-monthly-td" type="text" inputmode="numeric" placeholder="VD: 216.000" oninput="fmtInput(this)"></div>
+      <div class="fg"><label>Phí tất toán sớm (đ) — để trống nếu không có</label><input id="md-settle-fee" type="text" inputmode="numeric" placeholder="VD: 0" oninput="fmtInput(this)"></div>
+      <div class="fg"><label>Ghi chú (lãi suất…)</label><input id="md-note-td" type="text" placeholder="VD: 1.80%/th"></div>
     </div>
+
+    <!-- TC fields -->
+    <div id="md-tc-fields" style="display:none">
+      <div class="fg"><label>Nợ gốc ban đầu (đ)</label><input id="md-principal" type="text" inputmode="numeric" placeholder="VD: 50.000.000" oninput="fmtInput(this)"></div>
+      <div class="fg"><label>Ngày giải ngân</label><input id="md-disburse" type="date"></div>
+      <div class="fg"><label>Lãi suất (%/tháng)</label><input id="md-rate" type="number" inputmode="decimal" placeholder="VD: 1.8" step="0.01" onchange="calcTcFields()"></div>
+      <div class="fg"><label>Tổng số kỳ (tháng)</label><input id="md-totalterm" type="number" inputmode="numeric" placeholder="VD: 36" onchange="calcTcFields()"></div>
+      <div class="fg"><label>Kỳ hiện tại (đã trả)</label><input id="md-curterm" type="number" inputmode="numeric" placeholder="VD: 13" onchange="calcTcFields()"></div>
+      <!-- auto-calc readonly -->
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:13px;display:none" id="tc-calc-preview">
+        <div style="font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Tự tính toán</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Trả/tháng</div><div style="font-size:14px;font-weight:900;color:var(--accent)" id="tc-calc-monthly">—</div></div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Dư nợ còn lại</div><div style="font-size:14px;font-weight:900;color:var(--blue)" id="tc-calc-remain">—</div></div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Lãi/tháng này</div><div style="font-size:14px;font-weight:900;color:var(--orange)" id="tc-calc-interest">—</div></div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Gốc/tháng này</div><div style="font-size:14px;font-weight:900;color:var(--green)" id="tc-calc-principal">—</div></div>
+        </div>
+      </div>
+      <div class="fg"><label>Ghi chú</label><input id="md-note-tc" type="text" placeholder="VD: Vay mua xe"></div>
+    </div>
+
     <div class="mbtns">
       <button class="mbtn mbtn-cancel" onclick="closeModal('modal-debt')">Huỷ</button>
       <button class="mbtn mbtn-del" id="md-del" onclick="deleteDebt()">Xoá</button>
@@ -516,13 +410,12 @@
   </div>
 </div>
 
-<!-- ── MODAL: FINANCE ── -->
+<!-- MODAL: FINANCE -->
 <div class="modal-bg" id="modal-fin" onclick="closeMBg('modal-fin',event)">
   <div class="msheet">
-    <div class="mhandle"></div>
-    <div class="mtitle" id="mf-title">Thêm thu nhập</div>
+    <div class="mhandle"></div><div class="mtitle" id="mf-title">Thêm thu nhập</div>
     <div class="fg"><label>Tên</label><input id="mf-name" type="text" placeholder="VD: Lương cơ bản"></div>
-    <div class="fg"><label>Số tiền (đ)</label><input id="mf-amount" type="number" inputmode="numeric" placeholder="VD: 12000000"></div>
+    <div class="fg"><label>Số tiền (đ)</label><input id="mf-amount" type="text" inputmode="numeric" placeholder="VD: 12.000.000" oninput="fmtInput(this)"></div>
     <div class="fg"><label>Ghi chú</label><input id="mf-note" type="text" placeholder="VD: Hàng tháng"></div>
     <div class="mbtns">
       <button class="mbtn mbtn-cancel" onclick="closeModal('modal-fin')">Huỷ</button>
@@ -532,17 +425,15 @@
   </div>
 </div>
 
-<!-- ── MONTH PICKER ── -->
+<!-- MONTH PICKER -->
 <div class="modal-bg" id="modal-month" onclick="closeMBg('modal-month',event)">
   <div class="mpsheet">
-    <div class="mhandle"></div>
-    <div class="mptitle" id="mp-title">Chọn tháng</div>
+    <div class="mhandle"></div><div class="mptitle" id="mp-title">Chọn tháng</div>
     <div class="mpgrid" id="mp-grid"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
-
 <script type="module" src="app.js"></script>
 </body>
 </html>
