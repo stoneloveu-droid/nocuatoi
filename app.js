@@ -1,9 +1,29 @@
 import { auth, db, doc, onSnapshot, setDoc, GoogleAuthProvider, signInWithPopup, signInAnonymously, onAuthStateChanged, signOut }
   from "./firebase.js";
-import { fmt, fmtNoUnit, fmtInput, getInputVal, setInputFmt, getML, tcCalc, tcBalance, tcGetMonthly, tcGetDebt }
+import { fmt, fmtNoUnit, getML, tcCalc, tcBalance, tcGetMonthly, tcGetDebt }
   from "./calc.js";
 
-// ── EXPOSE helpers cần gọi từ HTML ───────────────────────────
+
+// ── DOM HELPERS (tách khỏi calc.js — không export) ───────────
+function fmtInput(el){
+  const raw=el.value.replace(/\./g,'').replace(/[^0-9]/g,'');
+  const num=parseInt(raw)||0;
+  el.value=num?fmtNoUnit(num):'';
+  el.dataset.raw=String(num);
+}
+function getInputVal(id){
+  const el=document.getElementById(id);
+  if(!el) return 0;
+  if(el.dataset.raw!==undefined&&el.dataset.raw!=='') return Number(el.dataset.raw);
+  return Number(el.value.replace(/\./g,''))||0;
+}
+function setInputFmt(id,val){
+  const el=document.getElementById(id);if(!el)return;
+  const n=Math.round(Number(val)||0);
+  el.value=n?fmtNoUnit(n):'';
+  el.dataset.raw=String(n);
+}
+// Expose cho oninput/onchange trong HTML
 window.fmtInput = fmtInput;
 
 // ── DEFAULTS ─────────────────────────────────────────────────
@@ -109,13 +129,27 @@ function autoReduceDebts(){
 }
 
 // ── AUTH ──────────────────────────────────────────────────────
-window.signInGoogle=async()=>{
-  try{const p=new GoogleAuthProvider();await signInWithPopup(auth,p);}
-  catch(e){showToast('⚠️ Đăng nhập thất bại');}
+// FIX: KHÔNG dùng async/await cho signInWithPopup
+// Browser chặn popup nếu gọi từ async context — phải gọi thẳng trong user gesture
+window.signInGoogle=function(){
+  const provider=new GoogleAuthProvider();
+  provider.setCustomParameters({prompt:'select_account'});
+  signInWithPopup(auth,provider).catch(e=>{
+    console.error('Google sign-in:',e.code,e.message);
+    if(e.code==='auth/popup-blocked'){
+      showToast('⚠️ Popup bị chặn — cho phép popup từ trang này');
+    } else if(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request'){
+      // User tự đóng, không cần thông báo
+    } else {
+      showToast('⚠️ '+e.code);
+    }
+  });
 };
-window.signInAnon=async()=>{
-  try{await signInAnonymously(auth);}
-  catch(e){showToast('⚠️ Lỗi kết nối');}
+window.signInAnon=function(){
+  signInAnonymously(auth).catch(e=>{
+    console.error('Anon sign-in:',e.code,e.message);
+    showToast('⚠️ Lỗi kết nối: '+e.code);
+  });
 };
 window.doSignOut=function(){
   confirmAction('Đăng xuất khỏi tài khoản?',async()=>{
@@ -684,7 +718,7 @@ function toggleTcFields(type){
 }
 window.onDebtTypeChange=val=>toggleTcFields(val);
 
-window.calcTcFields=function(){
+window.calcTcFields=function calcTcFields(){
   const P      =getInputVal('md-principal');
   const rate   =Number(document.getElementById('md-rate')?.value)||0;
   const total  =Number(document.getElementById('md-totalterm')?.value)||0;
@@ -704,7 +738,7 @@ window.calcTcFields=function(){
     document.getElementById('tc-calc-principal').textContent=fmt(prinPart);
   }
 };
-window.calcTdFields=function(){
+window.calcTdFields=function calcTdFields(){
   const limit=getInputVal('md-limit');
   const used =getInputVal('md-used');
   if(!limit||!used) return;
