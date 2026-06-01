@@ -122,12 +122,19 @@
   <div class="tool-card" id="tool-interest">
     <div class="tool-hdr" onclick="toggleTool('tool-interest')">
       <div class="tool-ico" style="background:rgba(87,200,255,.12)">🧮</div>
-      <div class="tool-info"><div class="tool-title">Tính lãi vay</div><div class="tool-sub">Nhập số tiền vay → ra số tiền trả mỗi tháng</div></div>
+      <div class="tool-info"><div class="tool-title">Tính lãi vay</div><div class="tool-sub">Kế hoạch trả nợ theo chuẩn BIDV</div></div>
       <div class="tool-arrow" id="arr-tool-interest">▸</div>
     </div>
     <div class="tool-body" id="body-tool-interest">
-      <div class="fg"><label>Số tiền vay (đ)</label><input id="ti-principal" type="number" inputmode="numeric" placeholder="VD: 50.000.000"></div>
-      <div class="fg"><label>Lãi suất (%/tháng)</label><input id="ti-rate" type="number" inputmode="decimal" placeholder="VD: 1.8"></div>
+      <div class="fg">
+        <label>Phương pháp tính</label>
+        <select id="ti-method" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 15px;color:var(--text);font-family:'Mulish',sans-serif;font-size:15px;font-weight:700;outline:none;-webkit-appearance:none">
+          <option value="reducing_balance">Dư nợ giảm dần (trả đều)</option>
+          <option value="fixed_principal">Gốc cố định (lãi giảm dần)</option>
+        </select>
+      </div>
+      <div class="fg"><label>Số tiền vay (đ)</label><input id="ti-principal" oninput="fmtInput(this)" inputmode="numeric" placeholder="VD: 50,000,000"></div>
+      <div class="fg"><label>Lãi suất (%/năm)</label><input id="ti-rate" type="number" inputmode="decimal" placeholder="VD: 18" step="0.1"></div>
       <div class="fg"><label>Số kỳ (tháng)</label><input id="ti-terms" type="number" inputmode="numeric" placeholder="VD: 36"></div>
       <button class="tool-run-btn" onclick="calcInterest()">Tính ngay</button>
       <div class="tool-result" id="ti-result"></div>
@@ -381,19 +388,27 @@
 
     <!-- TC fields -->
     <div id="md-tc-fields" style="display:none">
-      <div class="fg"><label>Nợ gốc ban đầu (đ)</label><input id="md-principal" type="text" inputmode="numeric" placeholder="VD: 50.000.000" oninput="fmtInput(this)"></div>
-      <div class="fg"><label>Ngày giải ngân</label><input id="md-disburse" type="date"></div>
-      <div class="fg"><label>Lãi suất (%/tháng)</label><input id="md-rate" type="number" inputmode="decimal" placeholder="VD: 1.8" step="0.01" onchange="calcTcFields()"></div>
+      <div class="fg"><label>Nợ gốc ban đầu (đ)</label><input id="md-principal" type="text" inputmode="numeric" placeholder="VD: 50,000,000" oninput="fmtInput(this);calcTcFields()"></div>
+      <div class="fg">
+        <label>Phương pháp tính lãi</label>
+        <select id="md-method" onchange="calcTcFields()" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 15px;color:var(--text);font-family:'Mulish',sans-serif;font-size:15px;font-weight:700;outline:none;-webkit-appearance:none">
+          <option value="reducing_balance">Dư nợ giảm dần (trả đều)</option>
+          <option value="fixed_principal">Gốc cố định (lãi giảm dần)</option>
+        </select>
+      </div>
+      <div class="fg"><label>Lãi suất (%/năm)</label><input id="md-rate" type="number" inputmode="decimal" placeholder="VD: 18" step="0.1" onchange="calcTcFields()"></div>
       <div class="fg"><label>Tổng số kỳ (tháng)</label><input id="md-totalterm" type="number" inputmode="numeric" placeholder="VD: 36" onchange="calcTcFields()"></div>
-      <div class="fg"><label>Kỳ hiện tại (đã trả)</label><input id="md-curterm" type="number" inputmode="numeric" placeholder="VD: 13" onchange="calcTcFields()"></div>
-      <!-- auto-calc readonly -->
+      <div class="fg"><label>Kỳ đã trả</label><input id="md-curterm" type="number" inputmode="numeric" placeholder="VD: 13" onchange="calcTcFields()"></div>
+      <!-- Preview tự tính -->
       <div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:13px;display:none" id="tc-calc-preview">
-        <div style="font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Tự tính toán</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Trả/tháng</div><div style="font-size:14px;font-weight:900;color:var(--accent)" id="tc-calc-monthly">—</div></div>
+        <div style="font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Tự tính toán</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Trả tháng này</div><div style="font-size:14px;font-weight:900;color:var(--accent)" id="tc-calc-monthly">—</div></div>
           <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Dư nợ còn lại</div><div style="font-size:14px;font-weight:900;color:var(--blue)" id="tc-calc-remain">—</div></div>
-          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Lãi/tháng này</div><div style="font-size:14px;font-weight:900;color:var(--orange)" id="tc-calc-interest">—</div></div>
-          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Gốc/tháng này</div><div style="font-size:14px;font-weight:900;color:var(--green)" id="tc-calc-principal">—</div></div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Lãi tháng này</div><div style="font-size:14px;font-weight:900;color:var(--orange)" id="tc-calc-interest">—</div></div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Trả gốc</div><div style="font-size:14px;font-weight:900;color:var(--green)" id="tc-calc-principal">—</div></div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Tổng lãi cả khoản</div><div style="font-size:13px;font-weight:900;color:var(--red)" id="tc-calc-total-int">—</div></div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--sub)">Tổng phải trả</div><div style="font-size:13px;font-weight:900;color:var(--text)" id="tc-calc-total-pay">—</div></div>
         </div>
       </div>
       <div class="fg"><label>Ghi chú</label><input id="md-note-tc" type="text" placeholder="VD: Vay mua xe"></div>

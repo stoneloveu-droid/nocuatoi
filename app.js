@@ -1,6 +1,8 @@
 import { auth, db, doc, onSnapshot, setDoc, GoogleAuthProvider, signInWithPopup, signInAnonymously, onAuthStateChanged, signOut }
   from "./firebase.js";
-import { fmt, fmtNoUnit, getML, tcCalc, tcBalance, tcGetMonthly, tcGetDebt }
+import { fmt, fmtNoUnit, getML,
+  tcCurrentPayment, tcBalance, tcGetMonthly, tcGetDebt,
+  tcTotalInterest, tcScheduleTable, migrateRate }
   from "./calc.js";
 
 
@@ -118,6 +120,10 @@ function migrateDebts(){
     if(d.type==='tc'&&!d.principal&&d.debt){d.principal=d.debt;}
     if(d.type==='td'&&!d.used&&d.debt){d.used=d.debt;d.limit=d.limit||d.debt*2;}
     if(d.type==='td'&&!d.monthly&&d.monthly!==0){d.monthly=d.used||0;}
+    // Migrate rate %/tháng → %/năm (rate cũ ≤ 5 thì là %/tháng)
+    if(d.type==='tc') migrateRate(d);
+    // Default method
+    if(d.type==='tc'&&!d.method) d.method='reducing_balance';
   });
 }
 
@@ -369,17 +375,15 @@ function addCard(wrap,d,ms){
         <div class="credit-bar-track"><div class="credit-bar-fill" style="width:${usedPct}%;background:${barColor}"></div></div>
       </div>`;
   } else {
-    const balance=tcGetDebt(d);
-    const r=Number(d.rate||0)/100;
-    const interestThisMonth=Math.round(balance*r);
-    const principalThisMonth=Math.max(0,monthly-interestThisMonth);
+    const cp       = tcCurrentPayment(d);
+    const balance  = cp.balance + cp.principal; // dư nợ đầu kỳ hiện tại
     detailHTML=`
       <div class="dd-inner">
-        <div class="dd-i"><label>Dư nợ còn lại</label><p>${fmt(balance)}</p></div>
+        <div class="dd-i"><label>Dư nợ còn lại</label><p>${fmt(tcGetDebt(d))}</p></div>
         <div class="dd-i"><label>Kỳ</label><p>${pct!==null?`${d.curTerm||0}/${d.totalTerm} (${pct}%)`:'—'}</p></div>
-        <div class="dd-i"><label>Lãi tháng này</label><p style="color:var(--orange)">${fmt(interestThisMonth)}</p></div>
-        <div class="dd-i"><label>Gốc tháng này</label><p style="color:var(--green)">${fmt(principalThisMonth)}</p></div>
-        <div class="dd-i"><label>Nợ gốc</label><p>${fmt(d.principal||0)}</p></div>
+        <div class="dd-i"><label>Trả tháng này</label><p style="color:var(--blue)">${fmt(cp.monthly)}</p></div>
+        <div class="dd-i"><label>Trong đó lãi</label><p style="color:var(--orange)">${fmt(cp.interest)}</p></div>
+        <div class="dd-i"><label>Trả gốc</label><p style="color:var(--green)">${fmt(cp.principal)}</p></div>
         <div class="dd-i"><label>Trạng thái</label><p id="ds-${d.id}" style="color:${settled?'var(--accent)':paid?'var(--accent)':'var(--orange)'}">${settled?'Tất toán ✓':paid?'Đã TT ✓':'Chờ TT'}</p></div>
       </div>`;
   }
@@ -581,17 +585,63 @@ window.toggleTool=function(id){
   if(!isOpen){body.classList.add('open');arrow.classList.add('open');}
 };
 window.calcInterest=function(){
-  const P=getInputVal('ti-principal');const r=Number(document.getElementById('ti-rate').value)/100||0;
-  const n=Number(document.getElementById('ti-terms').value)||0;
-  const res=document.getElementById('ti-result');
-  if(!P||!r||!n){showToast('⚠️ Nhập đủ thông tin');return;}
-  const monthly=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
-  const total=monthly*n;const interest=total-P;
+  const P      = getInputVal('ti-principal');
+  const rYear  = Number(document.getElementById('ti-rate').value)||0;
+  const n      = Number(document.getElementById('ti-terms').value)||0;
+  const method = document.getElementById('ti-method').value||'reducing_balance';
+  const res    = document.getElementById('ti-result');
+  if(!P||!rYear||!n){showToast('⚠️ Nhập đủ thông tin');return;}
+
+  const totalInt = tcTotalInterest(P, rYear, n, method);
+  const totalPay = P + totalInt;
+
+  // Kỳ 1 để hiển thị tiền trả đầu tiên
+  const first = tcPaymentAtTerm(P, rYear, n, method, 1);
+  // Kỳ cuối
+  const last  = tcPaymentAtTerm(P, rYear, n, method, n);
+
+  // Build schedule table (collapse nếu quá 60 kỳ)
+  const rows = tcScheduleTable(P, rYear, n, method);
+  const showAll = n <= 60;
+  const displayRows = showAll ? rows : [...rows.slice(0,3), null, ...rows.slice(-3)];
+
+  let tableHTML = `
+    <div style="overflow-x:auto;margin-top:12px">
+    <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:'Mulish',sans-serif">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border)">
+          <th style="padding:6px 4px;text-align:center;color:var(--sub);font-weight:800">Kỳ</th>
+          <th style="padding:6px 4px;text-align:right;color:var(--sub);font-weight:800">Tiền trả</th>
+          <th style="padding:6px 4px;text-align:right;color:var(--sub);font-weight:800">Gốc</th>
+          <th style="padding:6px 4px;text-align:right;color:var(--sub);font-weight:800">Lãi</th>
+          <th style="padding:6px 4px;text-align:right;color:var(--sub);font-weight:800">Dư nợ</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  displayRows.forEach(row=>{
+    if(!row){
+      tableHTML+=`<tr><td colspan="5" style="padding:6px;text-align:center;color:var(--sub)">• • •</td></tr>`;
+      return;
+    }
+    tableHTML+=`<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+      <td style="padding:6px 4px;text-align:center;font-weight:700">${row.term}</td>
+      <td style="padding:6px 4px;text-align:right;font-weight:800;color:var(--blue)">${fmtNoUnit(row.total)}</td>
+      <td style="padding:6px 4px;text-align:right;font-weight:700;color:var(--green)">${fmtNoUnit(row.principal)}</td>
+      <td style="padding:6px 4px;text-align:right;font-weight:700;color:var(--orange)">${fmtNoUnit(row.interest)}</td>
+      <td style="padding:6px 4px;text-align:right;color:var(--sub)">${fmtNoUnit(row.balance)}</td>
+    </tr>`;
+  });
+  tableHTML += `</tbody></table></div>`;
+
   res.className='tool-result show';
-  res.innerHTML=`<div class="tr-row"><span class="tr-label">Trả mỗi tháng</span><span class="tr-val" style="color:var(--accent)">${fmt(monthly)}</span></div>
-    <div class="tr-row"><span class="tr-label">Tổng trả ${n} kỳ</span><span class="tr-val">${fmt(total)}</span></div>
-    <div class="tr-row"><span class="tr-label">Tổng tiền lãi</span><span class="tr-val" style="color:var(--red)">${fmt(interest)}</span></div>
-    <div class="tr-row"><span class="tr-label">Vốn gốc</span><span class="tr-val">${fmt(P)}</span></div>`;
+  res.innerHTML=`
+    <div class="tr-row"><span class="tr-label">Trả kỳ 1</span><span class="tr-val" style="color:var(--accent)">${fmt(first.total)}</span></div>
+    ${method==='fixed_principal'?`<div class="tr-row"><span class="tr-label">Trả kỳ cuối</span><span class="tr-val">${fmt(last.total)}</span></div>`:''}
+    <div class="tr-row"><span class="tr-label">Tổng phải trả</span><span class="tr-val">${fmt(totalPay)}</span></div>
+    <div class="tr-row"><span class="tr-label">Tổng lãi</span><span class="tr-val" style="color:var(--red)">${fmt(totalInt)}</span></div>
+    <div class="tr-row"><span class="tr-label">Vốn gốc</span><span class="tr-val">${fmt(P)}</span></div>
+    ${tableHTML}`;
 };
 window.calcSaving=function(){
   const goal=getInputVal('sc-goal');const rYear=Number(document.getElementById('sc-rate').value)/100||0;
@@ -726,23 +776,29 @@ function toggleTcFields(type){
 window.onDebtTypeChange=val=>toggleTcFields(val);
 
 window.calcTcFields=function calcTcFields(){
-  const P      =getInputVal('md-principal');
-  const rate   =Number(document.getElementById('md-rate')?.value)||0;
-  const total  =Number(document.getElementById('md-totalterm')?.value)||0;
-  const paid   =Number(document.getElementById('md-curterm')?.value)||0;
-  const preview=document.getElementById('tc-calc-preview');
-  if(!P||!rate||!total){if(preview)preview.style.display='none';return;}
-  const {monthly}=tcCalc(P,rate,total);
-  const remain  =tcBalance(P,rate,total,paid);
-  const r       =rate/100;
-  const interest=Math.round(remain*r);
-  const prinPart=Math.max(0,monthly-interest);
+  const P       = getInputVal('md-principal');
+  const rYear   = Number(document.getElementById('md-rate')?.value)||0;
+  const total   = Number(document.getElementById('md-totalterm')?.value)||0;
+  const paid    = Number(document.getElementById('md-curterm')?.value)||0;
+  const method  = document.getElementById('md-method')?.value||'reducing_balance';
+  const preview = document.getElementById('tc-calc-preview');
+  if(!P||!rYear||!total){if(preview)preview.style.display='none';return;}
+
+  // Kỳ hiện tại = paid + 1
+  const curTerm = paid + 1;
+  const dTmp    = {principal:P, rate:rYear, totalTerm:total, method, curTerm:paid};
+  const cp      = tcCurrentPayment(dTmp);
+  const totalInt= tcTotalInterest(P, rYear, total, method);
+  const remain  = tcGetDebt(dTmp);
+
   if(preview){
     preview.style.display='block';
-    document.getElementById('tc-calc-monthly').textContent=fmt(monthly);
-    document.getElementById('tc-calc-remain').textContent =fmt(remain);
-    document.getElementById('tc-calc-interest').textContent=fmt(interest);
-    document.getElementById('tc-calc-principal').textContent=fmt(prinPart);
+    document.getElementById('tc-calc-monthly').textContent  = fmt(cp.monthly);
+    document.getElementById('tc-calc-remain').textContent   = fmt(remain);
+    document.getElementById('tc-calc-interest').textContent = fmt(cp.interest);
+    document.getElementById('tc-calc-principal').textContent= fmt(cp.principal);
+    document.getElementById('tc-calc-total-int').textContent= fmt(totalInt);
+    document.getElementById('tc-calc-total-pay').textContent= fmt(P + totalInt);
   }
 };
 window.calcTdFields=function calcTdFields(){
@@ -789,10 +845,10 @@ window.openDebtEdit=function(id){
     document.getElementById('md-note-td').value=d.note||'';
   } else {
     setInputFmt('md-principal',d.principal||0);
-    document.getElementById('md-disburse').value=d.disburseDate||'';
-    document.getElementById('md-rate').value=d.rate||'';
+    document.getElementById('md-rate').value=d.rate||'';       // %/năm
     document.getElementById('md-totalterm').value=d.totalTerm||'';
     document.getElementById('md-curterm').value=d.curTerm||'';
+    document.getElementById('md-method').value=d.method||'reducing_balance';
     document.getElementById('md-note-tc').value=d.note||'';
     setTimeout(window.calcTcFields,100);
   }
@@ -816,15 +872,15 @@ window.saveDebt=async function(){
     if(!monthly){showToast('⚠️ Nhập trả tối thiểu/tháng');return;}
     obj={...obj,limit,used,monthly,settleFee,note};
   } else {
-    const principal=getInputVal('md-principal');
-    const rate     =Number(document.getElementById('md-rate').value)||0;
-    const totalTerm=Number(document.getElementById('md-totalterm').value)||0;
-    const curTerm  =Number(document.getElementById('md-curterm').value)||0;
-    const disburseDate=document.getElementById('md-disburse').value||'';
-    const note     =document.getElementById('md-note-tc').value.trim();
+    const principal =getInputVal('md-principal');
+    const rate      =Number(document.getElementById('md-rate').value)||0;  // %/năm
+    const totalTerm =Number(document.getElementById('md-totalterm').value)||0;
+    const curTerm   =Number(document.getElementById('md-curterm').value)||0;
+    const method    =document.getElementById('md-method').value||'reducing_balance';
+    const note      =document.getElementById('md-note-tc').value.trim();
     if(!principal||!rate||!totalTerm){showToast('⚠️ Nhập đủ vốn gốc, lãi suất, số kỳ');return;}
     const settled=curTerm>=totalTerm&&totalTerm>0;
-    obj={...obj,principal,rate,totalTerm,curTerm,disburseDate,note,settled};
+    obj={...obj,principal,rate,totalTerm,curTerm,method,note,settled,rateConverted:true};
   }
   if(editDebtId){const d=debts.find(x=>x.id===editDebtId);if(d) Object.assign(d,obj);}
   else debts.push({id:'d'+Date.now(),...obj});
