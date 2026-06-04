@@ -19,26 +19,24 @@ import { renderHome, renderPaid, renderCards, renderTxnPage,
          renderReport } from "./render.js";
 
 // ── DEFAULTS ─────────────────────────────────────────────────
-const DEF_DEBTS = [
-  {id:'sample-td', name:'Thẻ mẫu', type:'td', limit:50000000, used:10000000, monthly:200000, note:'1.00%/th', payDay:15, settleFee:0},
-  // FIX: rate đổi sang %/năm (1.2%/tháng × 12 = 14.4%/năm)
-  {id:'sample-tc', name:'Vay mẫu', type:'tc', principal:30000000, rate:14.4, totalTerm:36, curTerm:6, payDay:10, note:''},
-];
-const DEF_INCOME  = [{id:'sal',    name:'Lương cơ bản',         amount:12000000, note:'Hàng tháng'}];
-const DEF_EXPENSE = [{id:'living', name:'Sinh hoạt / gia đình', amount:8200000,  note:'Cố định'}];
+const DEF_DEBTS = [];
+const DEF_INCOME  = [];
+const DEF_EXPENSE = [];
 const SUGGEST_IN  = ['Thưởng','Freelance','Bán đồ','Hoàn tiền','Thu nợ','Lãi tiết kiệm','Quà tặng','Khác'];
 const SUGGEST_OUT = ['Ăn uống','Di chuyển','Mua sắm','Y tế','Sửa chữa','Giải trí','Học phí','Điện nước','Khác'];
 
 // ── STATE ─────────────────────────────────────────────────────
 let debts=[], income=[], expense=[], ticks={};
-let txns={}, savings=[], walletBase=0, lastAutoMonth='';
+let txns={}, savings=[], loanBook=[], walletBase=0, lastAutoMonth='';
 let currentMonth='', currentFilter='all', openDetail=null;
 let editDebtId=null, editFinId=null, finMode='income';
 let editTxnId=null, txnType='out';
+let editLoanId=null;
 let uid=null, unsubSnap=null;
 let walletHidden=false;
 let showAllTxnsFlag=false;
 let isSavingToFirestore=false;
+let onboardingStep=1;
 
 function clone(x){return JSON.parse(JSON.stringify(x));}
 function initMonth(){
@@ -60,8 +58,9 @@ function startRealtimeSync(){
     if(isSavingToFirestore) return;
     if(!snap.exists()){
       debts=clone(DEF_DEBTS); income=clone(DEF_INCOME); expense=clone(DEF_EXPENSE);
-      ticks={}; txns={}; savings=[]; walletBase=0; lastAutoMonth='';
-      saveToFirestore();
+      ticks={}; txns={}; savings=[]; loanBook=[]; walletBase=0; lastAutoMonth='';
+      renderAll();
+      openOnboarding();
       return;
     }
     const d=snap.data();
@@ -71,9 +70,11 @@ function startRealtimeSync(){
     ticks         =d.ticks         ||{};
     txns          =d.txns          ||{};
     savings       =d.savings       ||[];
+    loanBook      =d.loanBook      ||[];
     walletBase    =d.walletBase    ||0;
     lastAutoMonth =d.lastAutoMonth ||'';
     migrateDebts();
+    autoReduceDebts();
     setSyncBadge('synced','Đã đồng bộ');
     renderAll();
   },(e)=>{setSyncBadge('error','Mất kết nối');console.error(e);});
@@ -84,7 +85,7 @@ async function saveToFirestore(){
   isSavingToFirestore=true;
   setSyncBadge('syncing','Đang lưu…');
   try{
-    await setDoc(userDoc(),{debts,income,expense,ticks,txns,savings,walletBase,lastAutoMonth},{merge:true});
+    await setDoc(userDoc(),{debts,income,expense,ticks,txns,savings,loanBook,walletBase,lastAutoMonth},{merge:true});
     setSyncBadge('synced','Đã đồng bộ');
   }catch(e){setSyncBadge('error','Lỗi lưu');console.error(e);}
   finally{
@@ -195,21 +196,70 @@ onAuthStateChanged(auth,async(user)=>{
 
 // ── RENDER ALL ────────────────────────────────────────────────
 function getState(){
-  return {debts,income,expense,ticks,txns,savings,walletBase,
+  return {debts,income,expense,ticks,txns,savings,loanBook,walletBase,
           walletHidden,currentMonth,currentFilter,
           currentTheme:getCurrentTheme(),showAllTxnsFlag};
 }
 
+// ── ONBOARDING ────────────────────────────────────────────────
+function showOnboardingStep(step){
+  onboardingStep=step;
+  const overlay=document.getElementById('onboarding-overlay');
+  if(!overlay) return;
+  overlay.classList.add('open');
+  overlay.querySelectorAll('.ob-step').forEach(el=>el.classList.toggle('active',Number(el.dataset.step)===step));
+  overlay.querySelectorAll('.ob-dot').forEach(el=>el.classList.toggle('active',Number(el.dataset.step)===step));
+}
+function openOnboarding(){
+  showOnboardingStep(1);
+  setTimeout(()=>document.getElementById('ob-income-amount')?.focus(),250);
+}
+function readOnboardingAmount(id){
+  const el=document.getElementById(id);
+  if(!el) return 0;
+  if(el.dataset.raw!==undefined&&el.dataset.raw!=='') return Number(el.dataset.raw)||0;
+  return Number(String(el.value||'').replace(/\./g,''))||0;
+}
+window.nextOnboarding=function(){
+  if(onboardingStep===1){
+    const amount=readOnboardingAmount('ob-income-amount');
+    if(!amount){showToast('Nhập thu nhập hàng tháng');return;}
+    const name=document.getElementById('ob-income-name')?.value.trim()||'Thu nhập hàng tháng';
+    income=[{id:'ob-inc',name,amount,note:'Hàng tháng'}];
+    showOnboardingStep(2);
+    return;
+  }
+  if(onboardingStep===2){
+    const amount=readOnboardingAmount('ob-expense-amount');
+    const name=document.getElementById('ob-expense-name')?.value.trim()||'Chi phí cố định';
+    expense=amount?[{id:'ob-exp',name,amount,note:'Cố định'}]:[];
+    showOnboardingStep(3);
+  }
+};
+window.skipOnboardingStep=function(){
+  if(onboardingStep===2){
+    expense=[];
+    showOnboardingStep(3);
+    return;
+  }
+  if(onboardingStep===3) window.finishOnboarding();
+};
+window.finishOnboarding=async function(){
+  walletBase=readOnboardingAmount('ob-wallet-amount');
+  await saveToFirestore();
+  document.getElementById('onboarding-overlay')?.classList.remove('open');
+  renderAll();
+  showToast('✓ Đã thiết lập ví');
+};
+
 function renderAll(){
-  autoReduceDebts();
   const s=getState();
   renderHome(s);
   renderPaid(s);
   renderTxnPage(s);
   renderSettings(s);
   renderTools(s);
-  const rp=document.getElementById('page-report');
-  if(rp&&rp.classList.contains('active')) renderReport(s);
+  renderReport(s);
 }
 
 // ── SWITCH PAGE ───────────────────────────────────────────────
@@ -223,7 +273,7 @@ window.switchPage=function(name){
   if(name==='home')     renderHome(s);
   if(name==='paid')     renderPaid(s);
   if(name==='txn')      renderTxnPage(s);
-  if(name==='report')   renderReport(s);
+  if(name==='report')   renderTools(s);
   if(name==='settings') renderSettings(s);
   if(name==='debt')     renderSettings(s);
   if(name==='finance')  renderSettings(s);
@@ -325,7 +375,13 @@ function openTxnEdit(id){
   setInputFmt('txn-amount',t.amount);
   document.getElementById('txn-del').style.display='block';
   const dateEl=document.getElementById('txn-date');
-  if(dateEl&&t.date) dateEl.value=t.date;
+  if(dateEl){
+    const [y,m]=currentMonth.split('-');
+    const lastDay=new Date(+y,+m,0).getDate();
+    dateEl.min=`${currentMonth}-01`;
+    dateEl.max=`${currentMonth}-${String(lastDay).padStart(2,'0')}`;
+    dateEl.value=t.date||`${currentMonth}-01`;
+  }
   setTxnType(t.type);
   document.getElementById('modal-txn').classList.add('open');
 }
@@ -361,7 +417,7 @@ window.saveTxn=async function(){
   if(editTxnId){const t=txns[currentMonth].find(x=>x.id===editTxnId);if(t){t.name=name;t.amount=amount;t.type=txnType;t.date=txnDate;}}
   else txns[currentMonth].push({id:'t'+Date.now(),name,amount,type:txnType,date:txnDate});
   await saveToFirestore();window.closeModal('modal-txn');
-  const s=getState();renderTxnPage(s);renderHome(s);
+  renderAll();
   showToast(txnType==='in'?`✓ +${fmt(amount)} Thu`:`✓ -${fmt(amount)} Chi`);
 };
 window.deleteTxn=function(){
@@ -369,22 +425,27 @@ window.deleteTxn=function(){
   confirmAction('Xoá giao dịch này?',async()=>{
     txns[currentMonth]=(txns[currentMonth]||[]).filter(x=>x.id!==editTxnId);
     await saveToFirestore();window.closeModal('modal-txn');
-    const s=getState();renderTxnPage(s);renderHome(s);showToast('🗑 Đã xoá');
+    renderAll();showToast('🗑 Đã xoá');
   });
 };
 window.openTxnModalType=function(type){
   window.openTxnModal();
   window.setTxnType(type);
 };
-window.openTxnSearch=()=>showToast('🔍 Tính năng đang phát triển');
-window.openTxnFilter=()=>showToast('🔽 Tính năng đang phát triển');
 window.showAllTxns=()=>{showAllTxnsFlag=true;renderTxnPage(getState());};
 
 // ── WALLET / SAVING ───────────────────────────────────────────
 window.saveWalletBase=async function(){
   walletBase=getInputVal('wallet-base-input');
   await saveToFirestore();
-  const s=getState();renderTxnPage(s);renderHome(s);showToast('✓ Đã lưu số dư');
+  renderAll();showToast('✓ Đã lưu số dư');
+};
+window.saveWalletBaseFromHome=async function(){
+  const el=document.getElementById('home-wallet-base-input');
+  walletBase=Number(el?.dataset.raw||String(el?.value||'').replace(/\./g,''))||0;
+  await saveToFirestore();
+  renderAll();
+  showToast('✓ Đã lưu số dư');
 };
 window.toggleWalletVis=function(){
   walletHidden=!walletHidden;
@@ -410,16 +471,52 @@ window.saveSaving=async function(){
   if(!amount){showToast('⚠️ Nhập số tiền');return;}
   const date=new Date().toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
   savings.push({id:'sv'+Date.now(),name,amount,date});
-  await saveToFirestore();window.closeModal('modal-saving');renderTxnPage(getState());showToast(`✓ +${fmt(amount)}`);
+  await saveToFirestore();window.closeModal('modal-saving');renderAll();showToast(`✓ +${fmt(amount)}`);
 };
 window.deleteSaving=function(id){
   confirmAction('Xoá khoản tiết kiệm này?',async()=>{
     savings=savings.filter(x=>x.id!==id);
-    await saveToFirestore();renderTxnPage(getState());showToast('🗑 Đã xoá');
+    await saveToFirestore();renderAll();showToast('🗑 Đã xoá');
   });
 };
 
-// ── DEBT MODAL ────────────────────────────────────────────────
+// ── LOAN BOOK ────────────────────────────────────────────────
+window.openLoanBookModal=function(id){
+  editLoanId=id||null;
+  const item=editLoanId?loanBook.find(x=>x.id===editLoanId):null;
+  document.getElementById('lb-name').value=item?.name||'';
+  setInputFmt('lb-amount',item?.amount||0);
+  document.getElementById('lb-note').value=item?.note||'';
+  document.getElementById('lb-del').style.display=item?'block':'none';
+  document.getElementById('modal-loanbook').classList.add('open');
+  setTimeout(()=>document.getElementById('lb-name').focus(),250);
+};
+window.saveLoanBook=async function(){
+  const name=document.getElementById('lb-name').value.trim();
+  const amount=getInputVal('lb-amount');
+  const note=document.getElementById('lb-note').value.trim();
+  if(!name){showToast('⚠️ Nhập tên người nợ');return;}
+  if(!amount){showToast('⚠️ Nhập số tiền');return;}
+  if(editLoanId){
+    const item=loanBook.find(x=>x.id===editLoanId);
+    if(item) Object.assign(item,{name,amount,note});
+  } else {
+    loanBook.push({id:'lb'+Date.now(),name,amount,note,date:new Date().toLocaleDateString('vi-VN')});
+  }
+  await saveToFirestore();window.closeModal('modal-loanbook');renderAll();showToast('✓ Đã lưu ghi nợ');
+};
+window.deleteLoanBook=function(){
+  if(!editLoanId) return;
+  confirmAction('Xoá ghi nợ này?',async()=>{
+    loanBook=loanBook.filter(x=>x.id!==editLoanId);
+    await saveToFirestore();window.closeModal('modal-loanbook');renderAll();showToast('🗑 Đã xoá');
+  });
+};
+
+// ── DEBT TYPE SHEET ───────────────────────────────────────────
+window.openDebtTypeSheet=function(){
+  document.getElementById('modal-debt-type').classList.add('open');
+};
 function toggleTcFields(type){
   document.getElementById('md-td-fields').style.display=type==='td'?'block':'none';
   document.getElementById('md-tc-fields').style.display=type==='tc'?'block':'none';
@@ -681,7 +778,7 @@ window.openThemeSheet=function(){
 
 // Export JSON
 window.exportJSON=function(){
-  const data={debts,income,expense,ticks,txns,savings,walletBase,lastAutoMonth};
+  const data={debts,income,expense,ticks,txns,savings,loanBook,walletBase,lastAutoMonth};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=`vi-cua-toi-${currentMonth}.json`;
@@ -697,7 +794,7 @@ window.resetAll=function(){
       'Xác nhận lần cuối — xoá hết dữ liệu?',
       async()=>{
         debts=clone(DEF_DEBTS);income=clone(DEF_INCOME);expense=clone(DEF_EXPENSE);
-        ticks={};txns={};savings=[];walletBase=0;lastAutoMonth='';
+        ticks={};txns={};savings=[];loanBook=[];walletBase=0;lastAutoMonth='';
         await saveToFirestore();renderAll();showToast('✓ Đã reset');
       }
     )
@@ -722,8 +819,8 @@ window.exportCSV=function(){
       rows.push([getML(month), t.type==='in'?'Thu':'Chi', t.name, t.amount, t.date||'', t.cat||'']);
     });
   });
-  income.forEach(x=>rows.push(['Cố định','Thu',x.name,x.amount,x.note||'']));
-  expense.forEach(x=>rows.push(['Cố định','Chi',x.name,x.amount,x.note||'']));
+  income.forEach(x=>rows.push(['Cố định','Thu',x.name,x.amount,'',x.note||'']));
+  expense.forEach(x=>rows.push(['Cố định','Chi',x.name,x.amount,'',x.note||'']));
   const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
@@ -738,4 +835,3 @@ window.showMethodHelp=function(){
   const el=document.getElementById('method-help');
   if(el) el.style.display=el.style.display==='none'?'block':'none';
 };
-

@@ -48,6 +48,7 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 .page.active{display:flex}
 .scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;padding-bottom:calc(var(--safe-b) + var(--bnav-h) + 16px)}
+#page-txn .scroll{padding-bottom:calc(var(--safe-b) + var(--bnav-h) + 88px)}
 
 /* ── PAGE HEADER ─────────────────────────────────────────────── */
 .page-header{
@@ -84,6 +85,15 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 .wc-eye:active{opacity:.6}
 .wc-amount{font-size:32px;font-weight:900;letter-spacing:-.8px;color:#fff;margin:6px 0 6px}
 .wc-update{font-size:11px;font-weight:500;color:rgba(255,255,255,.5)}
+.wallet-hint{margin:10px 16px 0;padding:13px 14px;border-radius:var(--r16);
+  background:rgba(87,200,255,.1);border:1px solid rgba(87,200,255,.25)}
+.wallet-hint-title{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:9px}
+.wallet-hint-form{display:flex;gap:8px}
+.wallet-hint-form input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Inter',sans-serif;
+  font-size:14px;font-weight:700;outline:none;text-align:right}
+.wallet-hint-form button{background:var(--blue);color:#0F0F14;border:none;border-radius:10px;
+  padding:10px 16px;font-family:'Inter',sans-serif;font-size:13px;font-weight:800;cursor:pointer}
 
 /* ── KPI GRID ────────────────────────────────────────────────── */
 .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 16px 0}
@@ -95,6 +105,9 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 .kpi-expense .kpi-val{color:var(--red)}
 .kpi-debt .kpi-val{color:var(--blue)}
 .kpi-remain .kpi-val{color:var(--purple)}
+.setup-hint{margin:10px 16px 0;padding:13px 14px;border-radius:var(--r16);
+  background:rgba(255,179,71,.12);border:1px solid rgba(255,179,71,.3);
+  color:var(--orange);font-size:12px;font-weight:700;line-height:1.45;cursor:pointer}
 
 /* ── PROGRESS CARD (circular) ────────────────────────────────── */
 .prog-card{margin:10px 16px 0;padding:18px;border-radius:var(--r20);background:var(--surface);
@@ -158,12 +171,6 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 .seg2-btn.active .seg2-cnt{background:rgba(0,0,0,.2)}
 .seg2-cnt.green{background:rgba(76,175,80,.25);color:var(--green)}
 
-.view-all-row{margin:12px 16px 0;padding:14px;border-radius:var(--r16);
-  background:var(--surface);border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  font-size:13px;font-weight:700;color:var(--blue);cursor:pointer}
-.view-all-row:active{opacity:.7}
-
 /* ── DEBT CARDS ──────────────────────────────────────────────── */
 .cards-wrap{padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .slabel{padding:10px 20px 6px;font-size:11px;font-weight:700;color:var(--sub);
@@ -189,6 +196,7 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
   background:transparent;display:flex;align-items:center;justify-content:center;
   cursor:pointer;flex-shrink:0;font-size:14px;font-weight:900;color:transparent;transition:all .2s}
 .chk.checked{background:var(--green);border-color:var(--green);color:#fff}
+.chk:disabled{opacity:.35;pointer-events:none}
 .chk:active{transform:scale(.85)}
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.22)}100%{transform:scale(1.05)}}
 .chk.pop{animation:pop .22s ease forwards}
@@ -208,6 +216,19 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 .td-settle-fee{font-size:10px;font-weight:500;color:var(--sub);margin-top:3px}
 
 .empty{text-align:center;padding:36px 20px;color:var(--sub);font-size:13px;font-weight:600}
+.empty-card{margin:12px 16px 0;padding:22px 18px;border-radius:var(--r20);
+  background:var(--surface);border:1px solid var(--border);text-align:center}
+.empty-card.compact{margin:0;padding:22px 18px;border-radius:var(--r16);border:none}
+.empty-ico{font-size:34px;margin-bottom:10px}
+.empty-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:5px}
+.empty-sub{font-size:12px;font-weight:600;color:var(--sub);line-height:1.5;margin:0 auto 14px;max-width:280px}
+.empty-card button{border:none;border-radius:12px;background:var(--blue);color:#0F0F14;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:800;padding:11px 16px;cursor:pointer}
+.empty-card button:active{opacity:.8}
+.settled-toggle{margin:12px 16px 0;padding:13px;border-radius:var(--r16);
+  background:var(--surface);border:1px solid var(--border);color:var(--accent);
+  text-align:center;font-size:13px;font-weight:800;cursor:pointer}
+.settled-toggle:active{opacity:.75}
 
 /* ── TXN PAGE ────────────────────────────────────────────────── */
 .month-nav{display:flex;align-items:center;justify-content:center;gap:20px;padding:14px 20px 8px}
@@ -225,6 +246,9 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 .tk3-val.green{color:var(--green)}.tk3-val.red{color:var(--red)}
 
 .txn-actions{display:flex;gap:10px;padding:10px 16px 0}
+.txn-fab-actions{position:fixed;left:0;right:0;bottom:calc(var(--safe-b) + var(--bnav-h) + 8px);
+  display:flex;gap:10px;padding:0 16px;z-index:90;pointer-events:none}
+.txn-fab-actions .txn-act{box-shadow:0 10px 30px rgba(0,0,0,.35);pointer-events:auto}
 .txn-act{flex:1;padding:13px;border:none;border-radius:14px;font-family:'Inter',sans-serif;
   font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .2s}
 .txn-act:active{opacity:.8}
@@ -453,6 +477,29 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
   color:var(--sub);font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s}
 .mpbtn.active{background:var(--accent);border-color:var(--accent);color:#0F0F14}
 .mpbtn:active{transform:scale(.94)}
+
+/* ── ONBOARDING ──────────────────────────────────────────────── */
+.onboarding-overlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.82);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);align-items:center;justify-content:center;padding:24px}
+.onboarding-overlay.open{display:flex}
+.onboarding-card{width:100%;max-width:390px;background:#fff;color:#111;border-radius:22px;
+  padding:22px;box-shadow:0 24px 80px rgba(0,0,0,.45);overflow:hidden}
+.ob-dots{display:flex;justify-content:center;gap:7px;margin-bottom:18px}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:#D7D7DE;transition:all .25s}
+.ob-dot.active{width:24px;border-radius:100px;background:#111}
+.ob-step{display:none;animation:obSlide .24s ease both}
+.ob-step.active{display:block}
+@keyframes obSlide{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+.ob-title{font-size:19px;font-weight:900;letter-spacing:-.3px;line-height:1.25;margin-bottom:18px}
+.ob-input{width:100%;border:1px solid #E3E3EA;background:#F7F7FA;color:#111;border-radius:14px;
+  padding:14px 15px;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;outline:none;margin-bottom:11px}
+.ob-input:focus{border-color:#111;background:#fff}
+.ob-actions{display:flex;gap:10px;margin-top:4px}
+.ob-primary,.ob-secondary{border:none;border-radius:14px;padding:14px 16px;font-family:'Inter',sans-serif;
+  font-size:14px;font-weight:900;cursor:pointer}
+.ob-primary{background:#111;color:#fff;flex:1}
+.ob-secondary{background:#EFEFF4;color:#555;flex:1}
+.ob-primary:active,.ob-secondary:active{opacity:.82}
 
 /* ── BOTTOM NAV ──────────────────────────────────────────────── */
 .bnav{position:fixed;bottom:0;left:0;right:0;

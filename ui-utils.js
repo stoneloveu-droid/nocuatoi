@@ -59,7 +59,7 @@ window.closeMBg=(id,e)=>{if(e.target===document.getElementById(id)) window.close
 // ── SYNC BADGE ────────────────────────────────────────────────
 export function setSyncBadge(cls,txt){
   const badge=document.getElementById('sync-badge');
-  const dot=document.getElementById('sync-dot');
+  const dot=(badge&&badge.querySelector('.sync-dot'))||document.querySelector('.sync-badge .sync-dot')||document.getElementById('sync-dot');
   if(!dot) return;
   dot.className='sync-dot'+' '+cls;
   if(badge) badge.title=txt;
