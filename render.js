@@ -191,10 +191,6 @@ export function renderHome({debts, income, expense, ticks, txns, savings, wallet
   if(el('kpi-debt-total')) el('kpi-debt-total').textContent=fmt(totalDebtLeft);
   if(el('kpi-wallet')) el('kpi-wallet').textContent=walletHidden?'••••••':fmt(wallet);
 
-  // Show setup hint if wallet base hasn't been configured
-  const hint=el('wc-setup-hint');
-  if(hint) hint.style.display=(walletBase===0)?'block':'none';
-
   const ms=ticks[currentMonth]||{};
   const paidAmt=debts.filter(d=>!d.settled&&ms[d.id]).reduce((s,d)=>s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)),0);
   const pct=totalDebtPay?Math.round(paidAmt/totalDebtPay*100):0;
@@ -248,12 +244,11 @@ export function renderCards({debts, ticks, currentMonth, currentFilter}){
   if(!list) return;
   list.innerHTML='';
   const ms=ticks[currentMonth]||{};
-  const hideSettled=localStorage.getItem('vn_hide_settled')!=='0'; // default true
-  let show=hideSettled?debts.filter(d=>!d.settled):debts;
-  if(currentFilter==='unpaid') show=show.filter(d=>!ms[d.id]&&!d.settled);
-  if(currentFilter==='paid2')  show=show.filter(d=>!!ms[d.id]||(!hideSettled&&d.settled));
-  if(currentFilter==='td')     show=show.filter(d=>d.type==='td');
-  if(currentFilter==='tc')     show=show.filter(d=>d.type==='tc');
+  let show=debts;
+  if(currentFilter==='unpaid') show=debts.filter(d=>!ms[d.id]&&!d.settled);
+  if(currentFilter==='paid2')  show=debts.filter(d=>!!ms[d.id]||d.settled);
+  if(currentFilter==='td')     show=debts.filter(d=>d.type==='td');
+  if(currentFilter==='tc')     show=debts.filter(d=>d.type==='tc');
   const td=show.filter(d=>d.type==='td');
   const tc=show.filter(d=>d.type==='tc');
   if(!show.length){list.innerHTML='<div class="empty">✅ Tất cả đã xong!</div>';return;}
@@ -266,8 +261,6 @@ export function renderCards({debts, ticks, currentMonth, currentFilter}){
   if(tc.length) addSection('💰 Vay Tín Chấp',tc);
   list.appendChild(Object.assign(document.createElement('div'),{style:'height:8px'}));
 }
-// Expose for settled toggle
-window._renderCards = null; // set by app.js after import
 
 // ── RENDER TXN PAGE ───────────────────────────────────────────
 export function renderTxnPage({txns, savings, walletBase, currentMonth, showAllTxnsFlag}){

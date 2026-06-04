@@ -110,16 +110,7 @@ export function initAccent(){
   window.setAccent(saved);
 }
 
-// ── MISC HELPERS ──────────────────────────────────────────────
-window.toggleMethodInfo=function(){
-  const box=document.getElementById('method-info-box');
-  if(box) box.style.display=box.style.display==='none'?'block':'none';
-};
-
-window.toggleHideSettled=function(hide){
-  localStorage.setItem('vn_hide_settled', hide?'1':'0');
-  if(window._renderCards) window._renderCards();
-};
+// ── MONTH PICKER ──────────────────────────────────────────────
 let pickerYear=new Date().getFullYear();
 Object.defineProperty(window,'pickerYear',{get(){return pickerYear;},set(v){pickerYear=v;}});
 
