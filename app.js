@@ -247,7 +247,13 @@ window.skipOnboardingStep=function(){
   }
   if(onboardingStep===3) window.finishOnboarding();
 };
-window.finishOnboarding=async function(){
+window.loginFromOnboarding=function(){
+  // Ẩn overlay onboarding trước
+  const ov=document.getElementById('onboarding-overlay');
+  if(ov) ov.classList.remove('open');
+  // Gọi đăng nhập Google — onAuthStateChanged sẽ xử lý phần còn lại
+  window.signInGoogle();
+};
   walletBase=readOnboardingAmount('ob-wallet-amount');
   await saveToFirestore();
   document.getElementById('onboarding-overlay')?.classList.remove('open');

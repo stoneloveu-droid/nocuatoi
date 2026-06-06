@@ -336,20 +336,20 @@
       <input id="ob-income-name" class="ob-input" type="text" placeholder="Lương, freelance...">
       <input id="ob-income-amount" class="ob-input" type="text" inputmode="numeric" placeholder="Số tiền" oninput="fmtInput(this)">
       <button class="ob-primary" onclick="nextOnboarding()">Tiếp tục</button>
-      <button class="ob-login-link" onclick="doSignOut()">Đăng nhập để lưu dữ liệu →</button>
+      <button class="ob-login-link" onclick="loginFromOnboarding()">Đăng nhập để lưu dữ liệu →</button>
     </div>
     <div class="ob-step" data-step="2">
       <div class="ob-title">Chi phí cố định hàng tháng?</div>
       <input id="ob-expense-name" class="ob-input" type="text" placeholder="Nhà, sinh hoạt, học phí...">
       <input id="ob-expense-amount" class="ob-input" type="text" inputmode="numeric" placeholder="Số tiền" oninput="fmtInput(this)">
       <div class="ob-actions"><button class="ob-secondary" onclick="skipOnboardingStep()">Bỏ qua</button><button class="ob-primary" onclick="nextOnboarding()">Tiếp tục</button></div>
-      <button class="ob-login-link" onclick="doSignOut()">Đăng nhập để lưu dữ liệu →</button>
+      <button class="ob-login-link" onclick="loginFromOnboarding()">Đăng nhập để lưu dữ liệu →</button>
     </div>
     <div class="ob-step" data-step="3">
       <div class="ob-title">Số dư ví hiện tại?</div>
       <input id="ob-wallet-amount" class="ob-input" type="text" inputmode="numeric" placeholder="Số tiền" oninput="fmtInput(this)">
       <div class="ob-actions"><button class="ob-secondary" onclick="skipOnboardingStep()">Bỏ qua</button><button class="ob-primary" onclick="finishOnboarding()">Hoàn tất</button></div>
-      <button class="ob-login-link" onclick="doSignOut()">Đăng nhập để lưu dữ liệu →</button>
+      <button class="ob-login-link" onclick="loginFromOnboarding()">Đăng nhập để lưu dữ liệu →</button>
     </div>
   </div>
 </div>
