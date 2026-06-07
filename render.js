@@ -130,10 +130,7 @@ export function renderHome({debts, income, expense, ticks, txns, savings, wallet
   if(el('kpi-income-mini'))  el('kpi-income-mini').textContent=fmt(totalIn);
   if(el('kpi-expense-mini')) el('kpi-expense-mini').textContent=fmt(totalOut);
   if(el('kpi-debt-pay-mini')) el('kpi-debt-pay-mini').textContent=fmt(totalDebtPay);
-    hint.onclick=()=>window.switchPage&&window.switchPage('finance');
-    hint.textContent='⚙ Thiết lập thu nhập & chi phí cố định trong Cài đặt để xem dự báo chính xác →';
-    kpiGrid.insertAdjacentElement('afterend',hint);
-  }
+
 
   const ms=ticks[currentMonth]||{};
   const paidAmt=debts.filter(d=>!d.settled&&ms[d.id]).reduce((s,d)=>s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)),0);
