@@ -153,7 +153,7 @@ export function renderHome({debts, income, expense, ticks, txns, savings, wallet
       el('upcoming-sub').textContent='Không có khoản nào sắp đến hạn';
     }
   }
-  if(el('upcoming-card')) el('upcoming-card').style.visibility=upcoming.length?'visible':'hidden';el('upcoming-card').style.opacity=upcoming.length?'1':'0';
+  if(el('upcoming-card')){el('upcoming-card').style.visibility=upcoming.length?'visible':'hidden';el('upcoming-card').style.opacity=upcoming.length?'1':'0';}
 }
 
 // ── RENDER PAID ───────────────────────────────────────────────
