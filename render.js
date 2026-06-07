@@ -114,7 +114,8 @@ export function renderHome({debts, income, expense, ticks, txns, savings, wallet
   const totalOut=totalExpense+txnOut;
   const remain  =totalIn-totalOut-totalDebtPay;
   const totalDebtLeft=debts.filter(d=>!d.settled).reduce((s,d)=>s+(d.type==='tc'?tcGetDebt(d):Number(d.used||0)),0);
-  const wallet=walletBase+txnIn-txnOut;
+  // wallet = tổng thu - tổng chi (không dùng walletBase nữa)
+  const wallet=totalIn-totalOut;
 
   if(el('kpi-income'))   el('kpi-income').textContent=fmt(totalIn);
   if(el('kpi-expense'))  el('kpi-expense').textContent=fmt(totalOut);
@@ -125,24 +126,10 @@ export function renderHome({debts, income, expense, ticks, txns, savings, wallet
   }
   if(el('kpi-debt-total')) el('kpi-debt-total').textContent=fmt(totalDebtLeft);
   if(el('kpi-wallet')) el('kpi-wallet').textContent=walletHidden?'••••••':fmt(wallet);
-
-  document.getElementById('home-wallet-hint')?.remove();
-  const walletCard=document.querySelector('.wallet-card');
-  if(walletCard&&walletBase===0&&!monthTxns.length){
-    const hint=document.createElement('div');
-    hint.className='wallet-hint';
-    hint.id='home-wallet-hint';
-    hint.innerHTML=`<div class="wallet-hint-title">💡 Nhập số dư ban đầu để theo dõi ví chính xác</div>
-      <div class="wallet-hint-form"><input id="home-wallet-base-input" type="text" inputmode="numeric" placeholder="0" oninput="fmtInput(this)"><button onclick="saveWalletBaseFromHome()">Lưu</button></div>`;
-    walletCard.insertAdjacentElement('afterend',hint);
-  }
-
-  document.getElementById('fixed-finance-hint')?.remove();
-  const kpiGrid=document.querySelector('.kpi-grid');
-  if(kpiGrid&&totalIncome===0&&totalExpense===0){
-    const hint=document.createElement('div');
-    hint.className='setup-hint';
-    hint.id='fixed-finance-hint';
+  // Mini KPI dưới wallet card
+  if(el('kpi-income-mini'))  el('kpi-income-mini').textContent=fmt(totalIn);
+  if(el('kpi-expense-mini')) el('kpi-expense-mini').textContent=fmt(totalOut);
+  if(el('kpi-debt-pay-mini')) el('kpi-debt-pay-mini').textContent=fmt(totalDebtPay);
     hint.onclick=()=>window.switchPage&&window.switchPage('finance');
     hint.textContent='⚙ Thiết lập thu nhập & chi phí cố định trong Cài đặt để xem dự báo chính xác →';
     kpiGrid.insertAdjacentElement('afterend',hint);

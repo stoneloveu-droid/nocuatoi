@@ -566,3 +566,42 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 /* Debt detail modal */
 #ddetail-content { padding: 4px 0 8px; }
+
+/* ── YC1: Wallet sub-row ── */
+.wc-sub-row{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+.wc-sub-item{font-size:11px;font-weight:700;color:var(--sub)}
+.wc-sub-item.green{color:var(--green)}
+.wc-sub-item.red{color:var(--red)}
+
+/* ── YC1: Donut row layout ── */
+.donut-row{display:flex;align-items:center;gap:16px;padding:8px 0}
+.donut-wrap{position:relative;flex-shrink:0;width:160px;height:160px}
+.donut-wrap canvas{width:160px!important;height:160px!important}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.donut-legend{flex:1;min-width:0}
+.dl-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border)}
+.dl-row:last-child{border-bottom:none}
+.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dl-name{flex:1;font-size:11px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-pct{font-size:10px;font-weight:800;color:var(--sub);min-width:28px;text-align:right}
+.dl-amt{font-size:10px;font-weight:800;color:var(--text);min-width:60px;text-align:right}
+
+/* ── YC2: Debt filter bar cố định dưới ── */
+.debt-filter-bar{
+  position:absolute;bottom:0;left:0;right:0;
+  display:flex;gap:0;
+  background:var(--card2);
+  border-top:1px solid var(--border);
+  padding:8px 12px calc(env(safe-area-inset-bottom,0px)+8px);
+  z-index:10;
+}
+.debt-filter-bar .seg2-btn{
+  flex:1;padding:9px 4px;border-radius:10px;text-align:center;
+  font-size:12px;font-weight:800;color:var(--sub);cursor:pointer;
+  transition:all .2s;background:transparent;border:none;
+}
+.debt-filter-bar .seg2-btn.active{background:var(--accent);color:#0A0A0F}
+.seg2-cnt{font-size:10px;font-weight:900;opacity:.7;margin-left:3px}
+
+/* ── YC4: Avatar Google ── */
+#sett-avatar-emoji{overflow:hidden;display:flex;align-items:center;justify-content:center}

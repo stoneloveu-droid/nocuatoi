@@ -178,7 +178,8 @@ onAuthStateChanged(auth,async(user)=>{
         el.textContent=user.isAnonymous?'🔓':'👤';el.classList.remove('has-initials');delete el.dataset.initials;
       }
     };
-    _setAvatar('sett-avatar-emoji');_setAvatar('sett-dd-avatar');
+    _setAvatar('sett-dd-avatar');
+    setGoogleAvatar(user);
     authPage.classList.remove('active');
     bnav.style.display='flex';
     initMonth();syncMonthForPicker();
@@ -271,6 +272,7 @@ function renderAll(){
   renderSettings(s);
   renderTools(s);
   renderReport(s);
+  updateDebtNavBadge();
 }
 
 // ── SWITCH PAGE ───────────────────────────────────────────────
@@ -551,12 +553,13 @@ window.saveWalletBaseFromHome=async function(){
 };
 window.toggleWalletVis=function(){
   walletHidden=!walletHidden;
-  const el=document.getElementById('kpi-wallet');
-  if(!el) return;
+  const el=document.getElementById('kpi-wallet');if(!el)return;
   const monthTxns=txns[currentMonth]||[];
+  const totalIncome=income.reduce((s,x)=>s+Number(x.amount),0);
+  const totalExpense=expense.reduce((s,x)=>s+Number(x.amount),0);
   const txnIn=monthTxns.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount),0);
   const txnOut=monthTxns.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
-  const wallet=walletBase+txnIn-txnOut;
+  const wallet=totalIncome+txnIn-totalExpense-txnOut;
   el.textContent=walletHidden?'••••••':fmt(wallet);
   const eye=document.getElementById('wallet-eye');
   if(eye) eye.style.opacity=walletHidden?'0.4':'1';
@@ -658,26 +661,38 @@ window.calcTcFields=function(){
   }
 };
 window.calcTdFields=function(){
-  const limit=getInputVal('md-limit');
-  const used =getInputVal('md-used');
-  if(!limit||!used) return;
-  const monthly=document.getElementById('md-monthly-td');
-  if(monthly&&(!monthly.dataset.raw||monthly.dataset.raw==='0')){
-    const est=Math.max(50000,Math.round(used*0.02));
-    setInputFmt('md-monthly-td',est);
+  const used=getInputVal('md-used');
+  const rateMonth=Number(document.getElementById('md-td-rate')?.value)||0;
+  if(used&&rateMonth){
+    // Phí tối thiểu = lãi tháng này (used × rate/100) làm tròn lên 50k
+    const interest=Math.round(used*rateMonth/100);
+    const minFee=Math.max(50000,Math.ceil(interest/50000)*50000);
+    setInputFmt('md-monthly-td',minFee);
   }
+};
+window.calcCurTermFromDate=function(){
+  const dateVal=document.getElementById('md-disburse-date')?.value;
+  if(!dateVal) return;
+  const start=new Date(dateVal);
+  const now=new Date();
+  const months=(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth());
+  const curTerm=Math.max(0,months);
+  const el=document.getElementById('md-curterm');
+  if(el) el.value=curTerm;
+  calcTcFields();
 };
 window.openDebtModal=function(type){
   editDebtId=null;
   document.getElementById('md-title').textContent=type==='td'?'Thêm thẻ tín dụng':'Thêm khoản vay';
   ['md-name','md-payday','md-limit','md-used','md-monthly-td','md-settle-fee','md-note-td',
-   'md-principal','md-rate','md-totalterm','md-curterm','md-note-tc'].forEach(id=>{
+   'md-principal','md-rate','md-totalterm','md-curterm','md-note-tc','md-td-rate'].forEach(id=>{
     const e=document.getElementById(id);if(e){e.value='';delete e.dataset.raw;}
   });
-  const dd=document.getElementById('md-disburse');if(dd) dd.value='';
+  const dd=document.getElementById('md-disburse-date');if(dd) dd.value='';
   document.getElementById('md-type').value=type;
   document.getElementById('md-del').style.display='none';
   const prev=document.getElementById('tc-calc-preview');if(prev) prev.style.display='none';
+  const mh=document.getElementById('method-help');if(mh) mh.style.display='none';
   toggleTcFields(type);
   document.getElementById('modal-debt').classList.add('open');
   setTimeout(()=>document.getElementById('md-name').focus(),350);
@@ -698,7 +713,7 @@ window.openDebtEdit=function(id){
     document.getElementById('md-note-td').value=d.note||'';
   } else {
     setInputFmt('md-principal',d.principal||0);
-    document.getElementById('md-disburse').value=d.disburseDate||'';
+    document.getElementById('md-disburse-date').value=d.disburseDate||'';
     document.getElementById('md-rate').value=d.rate||'';
     document.getElementById('md-totalterm').value=d.totalTerm||'';
     document.getElementById('md-curterm').value=d.curTerm||'';
@@ -731,7 +746,7 @@ window.saveDebt=async function(){
     const rate      =Number(document.getElementById('md-rate').value)||0;
     const totalTerm =Number(document.getElementById('md-totalterm').value)||0;
     const curTerm   =Number(document.getElementById('md-curterm').value)||0;
-    const disburseDate=document.getElementById('md-disburse').value||'';
+    const disburseDate=document.getElementById('md-disburse-date').value||'';
     const note      =document.getElementById('md-note-tc').value.trim();
     const method    =document.getElementById('md-method')?.value||'reducing_balance';
     if(!principal||!rate||!totalTerm){showToast('⚠️ Nhập đủ vốn gốc, lãi suất, số kỳ');return;}
@@ -902,6 +917,103 @@ window.resetAll=function(){
     )
   );
 };
+
+// ── SHARE TXN REPORT (YC3) ───────────────────────────────────
+window.shareTxnReport=function(){
+  const monthTxns=txns[currentMonth]||[];
+  const totalIncome=income.reduce((s,x)=>s+Number(x.amount),0);
+  const totalExpense=expense.reduce((s,x)=>s+Number(x.amount),0);
+  const txnIn=monthTxns.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount),0);
+  const txnOut=monthTxns.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount),0);
+  const totalDebtPay=debts.filter(d=>!d.settled).reduce((s,d)=>s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)),0);
+  const conDu=totalIncome+txnIn-totalExpense-txnOut-totalDebtPay;
+  const ml=getML(currentMonth);
+  let lines=[
+    `📊 BÁO CÁO CHI TIÊU ${ml}`,
+    `${'─'.repeat(28)}`,
+    `💰 Thu nhập:   ${fmt(totalIncome+txnIn)}`,
+    `💸 Chi tiêu:   ${fmt(totalExpense+txnOut)}`,
+    `🏦 Trả nợ:     ${fmt(totalDebtPay)}`,
+    `✅ Còn dư:     ${fmt(conDu)}`,
+    `${'─'.repeat(28)}`,
+  ];
+  if(monthTxns.length){
+    lines.push('📝 Giao dịch:');
+    [...monthTxns].reverse().slice(0,10).forEach(t=>{
+      const sign=t.type==='in'?'↑':'↓';
+      const d=t.date?` (${new Date(t.date).toLocaleDateString('vi-VN',{day:'numeric',month:'numeric'})})`:'';
+      lines.push(`  ${sign} ${t.name}${d}: ${fmt(t.amount)}`);
+    });
+    if(monthTxns.length>10) lines.push(`  ... và ${monthTxns.length-10} giao dịch khác`);
+  }
+  lines.push(`${'─'.repeat(28)}`);
+  lines.push(`📱 Ví của tôi — vicuatoi.web.app`);
+  const text=lines.join('\n');
+  document.getElementById('share-txn-text').value=text;
+  document.getElementById('modal-share-txn').classList.add('open');
+};
+window.copyTxnReport=function(){
+  const text=document.getElementById('share-txn-text').value;
+  navigator.clipboard.writeText(text).then(()=>showToast('✓ Đã copy — paste vào Zalo!'));
+};
+
+// ── SHARE APP QR (YC4) ───────────────────────────────────────
+window.showShareQR=function(){
+  const url=window.location.origin+window.location.pathname;
+  document.getElementById('qr-url-label').textContent=url;
+  const wrap=document.getElementById('qr-canvas-wrap');
+  wrap.innerHTML='';
+  // Dùng QRCode.js từ CDN nếu có, fallback sang Google Charts API
+  if(typeof QRCode!=='undefined'){
+    new QRCode(wrap,{text:url,width:180,height:180,colorDark:'#000',colorLight:'#fff'});
+  } else {
+    const img=document.createElement('img');
+    img.src=`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}`;
+    img.style='border-radius:8px;width:180px;height:180px';
+    img.alt='QR Code';
+    wrap.appendChild(img);
+  }
+  document.getElementById('modal-share-qr').classList.add('open');
+};
+window.copyShareLink=function(){
+  const url=window.location.origin+window.location.pathname;
+  navigator.clipboard.writeText(url).then(()=>{showToast('✓ Đã copy link!');window.closeModal('modal-share-qr');});
+};
+
+// ── DEBT BADGE TRÊN NAV ───────────────────────────────────────
+function updateDebtNavBadge(){
+  const badge=document.getElementById('nav-debt-badge');if(!badge)return;
+  const today=new Date().getDate();
+  const upcoming=debts.filter(d=>!d.settled&&d.payDay&&d.payDay>=today&&d.payDay<=today+7);
+  const ms=ticks[currentMonth]||{};
+  const unpaid=debts.filter(d=>!d.settled&&!ms[d.id]);
+  const count=unpaid.length;
+  if(count>0){
+    badge.textContent=count>9?'9+':String(count);
+    badge.style.display='flex';
+  } else {
+    badge.style.display='none';
+  }
+}
+
+// ── AVATAR GOOGLE ─────────────────────────────────────────────
+function setGoogleAvatar(user){
+  const img=document.getElementById('sett-avatar-img');
+  const txt=document.getElementById('sett-avatar-text');
+  if(!img||!txt)return;
+  if(user&&user.photoURL){
+    img.src=user.photoURL;
+    img.style.display='block';
+    txt.style.display='none';
+  } else if(user&&user.isAnonymous){
+    img.style.display='none';txt.style.display='';txt.textContent='🔓';
+  } else if(user&&user.displayName){
+    img.style.display='none';txt.style.display='';
+    txt.textContent=user.displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  } else {
+    img.style.display='none';txt.style.display='';txt.textContent='👤';
+  }
+}
 
 // ── INIT ──────────────────────────────────────────────────────
 initMonth();
