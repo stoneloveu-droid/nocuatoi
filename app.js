@@ -156,7 +156,23 @@ window.doSignOut=function(){
   });
 };
 
+// Fallback: nếu Firebase không phản hồi sau 6s → hiện auth page
+const _authTimeout=setTimeout(()=>{
+  const overlay=document.getElementById("loading-overlay");
+  const authPage=document.getElementById("auth-page");
+  const bnav=document.getElementById("bnav");
+  if(overlay&&!overlay.classList.contains("hidden")){
+    overlay.classList.add("hidden");
+    setTimeout(()=>overlay.style.display="none",500);
+    if(bnav) bnav.style.display="none";
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    if(authPage) authPage.classList.add("active");
+    console.warn("Firebase auth timeout");
+  }
+},6000);
+
 onAuthStateChanged(auth,async(user)=>{
+  clearTimeout(_authTimeout);
   const overlay =document.getElementById('loading-overlay');
   const authPage=document.getElementById('auth-page');
   const bnav    =document.getElementById('bnav');
