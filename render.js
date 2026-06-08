@@ -38,7 +38,17 @@ export function addCard2(wrap,d,ms){
   let sub='';
   if(d.type==='tc'&&d.totalTerm){
     const pct=Math.round((d.curTerm||0)/d.totalTerm*100);
-    sub=`Kỳ ${d.curTerm||0}/${d.totalTerm} · ${pct}% · Ngày ${d.payDay||'—'}`;
+    const remTerms=d.totalTerm-(d.curTerm||0);
+    const endDate=new Date();endDate.setMonth(endDate.getMonth()+remTerms);
+    const endStr=endDate.toLocaleDateString('vi-VN',{month:'numeric',year:'numeric'});
+    const rateLbl=d.rate?`${d.rate}%/năm · `:'';
+    sub=`${rateLbl}Kỳ ${d.curTerm||0}/${d.totalTerm} · Kết thúc ${endStr}`;
+  } else if(d.type==='td'){
+    const used=Number(d.used||0);
+    const m=Number(d.monthly||0);
+    const feePct=used>0?Math.round(m/used*100*10)/10:0;
+    const feeLbl=feePct>0?`Phí ${feePct}% · `:'';
+    sub=`${feeLbl}Ngày ${d.payDay||'—'}${d.note?` · ${d.note}`:''}`;
   } else {
     sub=`${d.note||''} · Ngày ${d.payDay||'—'}`;
   }
@@ -119,8 +129,11 @@ export function renderHome({debts, income, expense, ticks, txns, savings, wallet
   const totalOut=totalExpense+txnOut;
   const remain  =totalIn-totalOut-totalDebtPay;
   const totalDebtLeft=debts.filter(d=>!d.settled).reduce((s,d)=>s+(d.type==='tc'?tcGetDebt(d):Number(d.used||0)),0);
-  // wallet = tổng thu - tổng chi - tổng nợ phải trả tháng (kể cả chưa tick)
-  const wallet=totalIn-totalOut-totalDebtPay;
+  const ms=ticks[currentMonth]||{};
+  const paidDebtAmt=debts.filter(d=>!d.settled&&ms[d.id]).reduce((s,d)=>s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)),0);
+  // Số dư ví = tiền đang thực sự có: thu - chi thường - các khoản nợ ĐÃ tick trả
+  // (nợ chưa tick = chưa chi ra, nên chưa trừ)
+  const wallet=totalIn-totalOut-paidDebtAmt;
 
   if(el('kpi-income'))   el('kpi-income').textContent=fmt(totalIn);
   if(el('kpi-expense'))  el('kpi-expense').textContent=fmt(totalOut);
@@ -137,7 +150,6 @@ export function renderHome({debts, income, expense, ticks, txns, savings, wallet
   if(el('kpi-debt-pay-mini')) el('kpi-debt-pay-mini').textContent=fmt(totalDebtPay);
 
 
-  const ms=ticks[currentMonth]||{};
   const paidAmt=debts.filter(d=>!d.settled&&ms[d.id]).reduce((s,d)=>s+(d.type==='tc'?tcGetMonthly(d):Number(d.monthly||0)),0);
   const pct=totalDebtPay?Math.round(paidAmt/totalDebtPay*100):0;
   const circumference=201;

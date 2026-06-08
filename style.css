@@ -80,11 +80,11 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
   background:linear-gradient(135deg,#1A3A1A,#0F2A0F);
   border:1px solid rgba(76,175,80,.2)}
 .wc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.wc-label{font-size:10px;font-weight:800;letter-spacing:.8px;color:rgba(255,255,255,.65);text-transform:uppercase}
+.wc-label{font-size:9px;font-weight:800;letter-spacing:.8px;color:rgba(255,255,255,.65);text-transform:uppercase}
 .wc-eye{background:none;border:none;cursor:pointer;padding:4px;border-radius:8px;
   color:rgba(255,255,255,.65);display:flex;align-items:center}
 .wc-eye:active{opacity:.6}
-.wc-amount{font-size:32px;font-weight:900;letter-spacing:-.8px;color:#fff;margin:6px 0 6px}
+.wc-amount{font-size:26px;font-weight:900;letter-spacing:-.8px;color:#fff;margin:4px 0 4px}
 .wc-update{font-size:11px;font-weight:500;color:rgba(255,255,255,.5)}
 .wallet-hint{margin:10px 16px 0;padding:13px 14px;border-radius:var(--r16);
   background:rgba(87,200,255,.1);border:1px solid rgba(87,200,255,.25)}
@@ -121,10 +121,10 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 .circ-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-size:15px;font-weight:900;color:var(--accent)}
 .prog-card-info{flex:1;min-width:0}
-.pci-title{font-size:13px;font-weight:700;margin-bottom:10px}
-.pci-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-.pci-row span:first-child{font-size:12px;font-weight:500;color:var(--sub)}
-.pci-val{font-size:13px;font-weight:800}
+.pci-title{font-size:11px;font-weight:700;margin-bottom:8px}
+.pci-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.pci-row span:first-child{font-size:10px;font-weight:500;color:var(--sub)}
+.pci-val{font-size:11px;font-weight:800}
 .pci-val.green{color:var(--green)}
 
 /* ── DEBT SUMMARY CARD ───────────────────────────────────────── */
@@ -180,19 +180,19 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
   overflow:hidden;transition:border-color .2s}
 .dcard.paid{border-color:rgba(76,175,80,.35)}
 .dcard.settled{opacity:.45}
-.dcard-top{display:flex;align-items:center;padding:14px 14px 14px 16px;gap:11px;cursor:pointer;user-select:none}
+.dcard-top{display:flex;align-items:center;padding:11px 12px 11px 12px;gap:9px;cursor:pointer;user-select:none}
 .dcard.paid .dcard-top{opacity:.65}
-.bank-ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
-  font-size:18px;flex-shrink:0;font-weight:800;font-size:13px;color:#fff}
+.bank-ico{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;font-weight:800;font-size:11px;color:#fff}
 .d-info{flex:1;min-width:0}
-.d-name{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.d-name{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dcard.settled .d-name{text-decoration:line-through;opacity:.5}
-.settled-tag{font-size:10px;font-weight:700;color:var(--accent);margin-left:6px}
-.d-sub{font-size:11px;font-weight:500;color:var(--sub);margin-top:2px}
+.settled-tag{font-size:9px;font-weight:700;color:var(--accent);margin-left:6px}
+.d-sub{font-size:10px;font-weight:500;color:var(--sub);margin-top:1px}
 .d-right{text-align:right;flex-shrink:0}
-.d-amt{font-size:15px;font-weight:800}
+.d-amt{font-size:13px;font-weight:800}
 .d-amt.td{color:var(--orange)}.d-amt.tc{color:var(--blue)}
-.d-unit{font-size:10px;font-weight:500;color:var(--sub);margin-top:2px}
+.d-unit{font-size:9px;font-weight:500;color:var(--sub);margin-top:1px}
 .chk{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.15);
   background:transparent;display:flex;align-items:center;justify-content:center;
   cursor:pointer;flex-shrink:0;font-size:14px;font-weight:900;color:transparent;transition:all .2s}
@@ -301,12 +301,12 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 /* ── REPORT ──────────────────────────────────────────────────── */
 .report-overview{margin:14px 16px 0;padding:18px;border-radius:var(--r20);
   background:var(--surface);border:1px solid var(--border)}
-.ro-title{font-size:14px;font-weight:800;margin-bottom:14px}
-.ro-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.ro-title{font-size:12px;font-weight:800;margin-bottom:10px}
+.ro-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
 .ro-row:last-child{border-bottom:none;padding-bottom:0}
-.ro-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.ro-row>span:nth-child(2){flex:1;font-size:13px;font-weight:500;color:var(--sub)}
-.ro-val{font-size:15px;font-weight:800}
+.ro-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ro-row>span:nth-child(2){flex:1;font-size:11px;font-weight:500;color:var(--sub)}
+.ro-val{font-size:12px;font-weight:800}
 .ro-val.green{color:var(--green)}.ro-val.red{color:var(--red)}.ro-val.purple{color:var(--purple)}
 
 .report-card{margin:10px 16px 0;padding:18px;border-radius:var(--r20);
@@ -569,15 +569,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 #ddetail-content { padding: 4px 0 8px; }
 
 /* ── YC1: Wallet sub-row ── */
-.wc-sub-row{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
-.wc-sub-item{font-size:11px;font-weight:700;color:var(--sub)}
+.wc-sub-row{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+.wc-sub-item{font-size:10px;font-weight:700;color:var(--sub)}
 .wc-sub-item.green{color:var(--green)}
 .wc-sub-item.red{color:var(--red)}
 
 /* ── YC1: Donut row layout ── */
 .donut-row{display:flex;align-items:center;gap:16px;padding:8px 0}
-.donut-wrap{position:relative;flex-shrink:0;width:160px;height:160px}
-.donut-wrap canvas{width:160px!important;height:160px!important}
+.donut-wrap{position:relative;flex-shrink:0;width:128px;height:128px}
+.donut-wrap canvas{width:128px!important;height:128px!important}
 .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
 .donut-legend{flex:1;min-width:0}
 .dl-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border)}
@@ -667,3 +667,19 @@ button, .seg2-btn, .ni, .sett-row, .dcard-top, .txn-row, .add-row,
 
 /* Khi đang drag — card gốc mờ đi */
 .dcard.dragging { opacity: 0.25 !important; }
+
+/* ── Nút Thu chi cố định ── */
+.fin-fixed-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 11px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--sub);
+  font-family: inherit;
+  font-size: 11px; font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, color .15s, transform .1s;
+}
+.fin-fixed-btn svg { flex-shrink:0; stroke: var(--sub); }
+.fin-fixed-btn:active { opacity: .7; transform: scale(0.94); }

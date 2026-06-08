@@ -452,10 +452,22 @@ window.tapCheck=async function(id){
   const totalPay=debts.filter(x=>!x.settled).reduce((s,x)=>s+(x.type==='tc'?tcGetMonthly(x):Number(x.monthly||0)),0);
   const paidAmt =debts.filter(x=>!x.settled&&ticks[currentMonth]?.[x.id]).reduce((s,x)=>s+(x.type==='tc'?tcGetMonthly(x):Number(x.monthly||0)),0);
   const pct=totalPay?Math.round(paidAmt/totalPay*100):0;
-  const pf=document.getElementById('prog-fill');const pp=document.getElementById('prog-pct');
-  if(pf) pf.style.width=pct+'%'; if(pp) pp.textContent=pct+'%';
-  const ep=document.getElementById('ps-paid');const eu=document.getElementById('ps-unpaid');
-  if(ep) ep.textContent=fmt(paidAmt); if(eu) eu.textContent=fmt(totalPay-paidAmt);
+  const circumference=201;
+  // Cập nhật vòng tròn tiến độ
+  const cf=document.getElementById('circ-fill');if(cf) cf.style.strokeDashoffset=circumference-(circumference*pct/100);
+  const pp=document.getElementById('prog-pct');if(pp) pp.textContent=pct+'%';
+  const ppa=document.getElementById('prog-paid-amt');if(ppa) ppa.textContent=fmt(paidAmt);
+  const pta=document.getElementById('prog-total-amt');if(pta) pta.textContent=fmt(totalPay);
+  const pua=document.getElementById('ps-unpaid-amt');if(pua) pua.textContent=fmt(totalPay-paidAmt);
+  // Cập nhật wallet (chỉ trừ nợ đã tick)
+  const s=getState();
+  const monthTxns=s.txns[currentMonth]||[];
+  const txnIn=monthTxns.filter(t=>t.type==='in').reduce((sum,t)=>sum+Number(t.amount),0);
+  const txnOut=monthTxns.filter(t=>t.type==='out').reduce((sum,t)=>sum+Number(t.amount),0);
+  const totalIn=s.income.reduce((sum,x)=>sum+Number(x.amount),0)+txnIn;
+  const totalOut=s.expense.reduce((sum,x)=>sum+Number(x.amount),0)+txnOut;
+  const newWallet=totalIn-totalOut-paidAmt;
+  const kw=document.getElementById('kpi-wallet');if(kw&&!s.walletHidden) kw.textContent=fmt(newWallet);
 
   if(currentFilter==='unpaid') setTimeout(()=>{openDetail=null;renderCards(getState());},500);
   await saveToFirestore();
@@ -1236,27 +1248,62 @@ window.showMethodHelp=function(){
     dragEl=null; sectionType=null; allCards=[];
   }
 
-  // Attach listeners via delegation on #card-list
+  // ── Long-press 600ms trước khi bắt đầu drag ──
+  let pressTimer=null, pendingHandle=null, pendingEvent=null;
+  let isDragging=false;
+
+  function cancelPress(){
+    clearTimeout(pressTimer);
+    pressTimer=null; pendingHandle=null; pendingEvent=null;
+  }
+
   document.addEventListener('touchstart',function(e){
     const handle=e.target.closest('.drag-handle');
-    if(!handle) return;
-    onStart(e,handle);
-  },{passive:false});
-  document.addEventListener('touchmove',function(e){
-    if(!dragEl) return;
-    onMove(e);
-  },{passive:false});
-  document.addEventListener('touchend',onEnd,{passive:true});
-  document.addEventListener('touchcancel',onEnd,{passive:true});
+    if(!handle){cancelPress();return;}
+    pendingHandle=handle; pendingEvent=e;
+    pressTimer=setTimeout(()=>{
+      isDragging=true;
+      // Haptic nếu có
+      if(navigator.vibrate) navigator.vibrate(40);
+      onStart(pendingEvent, pendingHandle);
+    },600);
+  },{passive:true});
 
-  // Mouse fallback (desktop)
+  document.addEventListener('touchmove',function(e){
+    if(isDragging&&dragEl){
+      onMove(e);
+      e.preventDefault();
+    } else if(pressTimer){
+      // Nếu ngón tay di chuyển trước 600ms → hủy long-press
+      const t0=pendingEvent?.touches?.[0];const t1=e.touches?.[0];
+      if(t0&&t1&&(Math.abs(t1.clientX-t0.clientX)>8||Math.abs(t1.clientY-t0.clientY)>8)) cancelPress();
+    }
+  },{passive:false});
+
+  document.addEventListener('touchend',async function(e){
+    cancelPress();
+    if(!isDragging) return;
+    isDragging=false;
+    await onEnd();
+  },{passive:true});
+
+  document.addEventListener('touchcancel',async function(){
+    cancelPress(); isDragging=false; await onEnd();
+  },{passive:true});
+
+  // Mouse fallback (desktop) — long-press 600ms
   document.addEventListener('mousedown',function(e){
     const handle=e.target.closest('.drag-handle');
     if(!handle) return;
-    onStart(e,handle);
-    const mm=ev=>onMove(ev);
-    const mu=async()=>{ await onEnd(); document.removeEventListener('mousemove',mm); document.removeEventListener('mouseup',mu); };
-    document.addEventListener('mousemove',mm);
-    document.addEventListener('mouseup',mu);
+    pendingHandle=handle; pendingEvent=e;
+    pressTimer=setTimeout(()=>{
+      isDragging=true;
+      onStart(pendingEvent,pendingHandle);
+      const mm=ev=>{if(isDragging) onMove(ev);};
+      const mu=async()=>{cancelPress();isDragging=false;await onEnd();document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);};
+      document.addEventListener('mousemove',mm);
+      document.addEventListener('mouseup',mu);
+    },600);
   });
+  document.addEventListener('mouseup',()=>{ if(!isDragging) cancelPress(); });
 })();

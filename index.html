@@ -43,7 +43,7 @@
   <div class="scroll">
     <div class="wallet-card">
       <div class="wc-top">
-        <div class="wc-label">SỐ DƯ VÍ <span style="font-size:9px;opacity:.5;font-weight:600">(Thu – Chi tháng này)</span></div>
+        <div class="wc-label">SỐ DƯ VÍ <span style="font-size:8px;opacity:.5;font-weight:600">(Thu – Chi – Nợ đã trả)</span></div>
         <button class="wc-eye" onclick="toggleWalletVis()" id="wallet-eye">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
@@ -73,7 +73,7 @@
       <div class="rc-title">Chi tiêu theo danh mục</div>
       <div class="donut-row">
         <div class="donut-wrap">
-          <canvas id="donut-chart" width="160" height="160"></canvas>
+          <canvas id="donut-chart" width="128" height="128"></canvas>
           <div class="donut-center"><div class="dc-val" id="donut-total">—</div><div class="dc-lbl">Tổng chi</div></div>
         </div>
         <div class="donut-legend" id="donut-legend"></div>
@@ -115,19 +115,18 @@
     <div id="card-list"></div>
     <div style="height:8px"></div>
   </div>
-  <!-- 3 nút filter cố định dưới -->
-  <div class="debt-filter-bar">
-    <div class="seg2-btn active" id="seg-all" onclick="filterTab('all',this)">Tất cả <span class="seg2-cnt" id="badge-all"></span></div>
-    <div class="seg2-btn" id="seg-unpaid" onclick="filterTab('unpaid',this)">Chưa TT <span class="seg2-cnt" id="badge-unpaid"></span></div>
-    <div class="seg2-btn" id="seg-paid2" onclick="filterTab('paid2',this)">Đã TT <span class="seg2-cnt green" id="badge-paid2"></span></div>
-  </div>
 </div>
 
 <!-- TAB 3: THU CHI -->
 <div class="page" id="page-txn">
   <div class="page-header">
     <div class="ph-title">Thu chi</div>
-    <div class="ph-right"></div>
+    <div class="ph-right">
+      <button class="fin-fixed-btn" onclick="switchPage('finance')" title="Thu chi cố định">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        <span>Cố định</span>
+      </button>
+    </div>
   </div>
   <div class="scroll">
     <div class="month-nav">
@@ -259,11 +258,6 @@
       </button>
     </div>
 
-    <div class="sett-sec-lbl">Tài chính cố định</div>
-    <div class="sett-list">
-      <div class="sett-row" onclick="switchPage('finance')"><div class="sr-ico green"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><span class="sr-lbl">Thu nhập &amp; Chi phí</span><svg class="sr-chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
-    </div>
-
     <div class="sett-sec-lbl">Cài đặt</div>
     <div class="sett-list">
       <div class="sett-row"><div class="sr-ico blue2"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><span class="sr-lbl">Giới thiệu ứng dụng</span><span class="sr-val">v2.0</span></div>
@@ -309,8 +303,8 @@
 <!-- TÀI CHÍNH CỐ ĐỊNH (truy cập từ Cài đặt) -->
 <div class="page" id="page-finance">
   <div class="page-header">
-    <button class="icon-btn" onclick="switchPage('settings')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-    <div class="ph-title" style="margin-left:8px">Tài chính cố định</div>
+    <button class="icon-btn" onclick="switchPage('txn')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div class="ph-title" style="margin-left:8px">Thu chi cố định</div>
   </div>
   <div class="scroll">
     <div style="padding:0 16px 8px">
