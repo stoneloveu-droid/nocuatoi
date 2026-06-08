@@ -5,7 +5,7 @@
   --accent:#C8FF57; --blue:#57C8FF; --red:#FF4F4F; --orange:#FFB347;
   --purple:#C57BFF; --green:#4CAF50; --teal:#57FFB3;
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
-  --bnav-h:60px; --card:var(--surface); --card2:var(--surface2);
+  --bnav-h:68px; --card:var(--surface); --card2:var(--surface2);
   --r16:16px; --r20:20px; --r24:24px;
 }
 [data-theme="light"]{
@@ -47,9 +47,9 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 .page{display:none;flex-direction:column;height:100dvh;width:100%;position:relative}
 .page.active{display:flex}
 .scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;padding-bottom:calc(var(--safe-b) + var(--bnav-h) + 40px)}
-#page-txn .scroll{padding-bottom:calc(var(--safe-b) + var(--bnav-h) + 104px)}
-#page-paid .scroll{padding-bottom:calc(var(--safe-b) + 80px)}
+  overscroll-behavior:contain;padding-bottom:calc(var(--safe-b) + var(--bnav-h) + 80px)}
+#page-txn .scroll{padding-bottom:calc(var(--safe-b) + var(--bnav-h) + 140px)}
+#page-paid .scroll{padding-bottom:calc(var(--safe-b) + 100px)}
 
 /* ── PAGE HEADER ─────────────────────────────────────────────── */
 .page-header{
