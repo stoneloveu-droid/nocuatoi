@@ -1052,25 +1052,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   initAccent();
   const th=localStorage.getItem('vn_theme')||'dark';
   setTheme(th);
-
-  // ── RIPPLE: tạo hiệu ứng ripple cho tất cả nút tương tác ──
-  const RIPPLE_SELS=[
-    'button','.seg2-btn','.ni','.sett-row','.add-row','.mpbtn',
-    '.txn-act','.chip','.tp-btn','.tt-btn','.mnav-btn','.month-chip',
-    '.icon-btn','.dcard-top','.settled-toggle','.txn-row'
-  ].join(',');
-  document.body.addEventListener('pointerdown',(e)=>{
-    const el=e.target.closest(RIPPLE_SELS);
-    if(!el) return;
-    el.classList.add('ripple-host');
-    const r=document.createElement('span');
-    r.className='ripple-circle';
-    const rect=el.getBoundingClientRect();
-    r.style.left=(e.clientX-rect.left)+'px';
-    r.style.top=(e.clientY-rect.top)+'px';
-    el.appendChild(r);
-    setTimeout(()=>r.remove(),550);
-  },{passive:true});
 });
 
 // ── EXPORT CSV (UX#9) ─────────────────────────────────────────
